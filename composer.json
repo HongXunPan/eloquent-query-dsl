@@ -1,0 +1,36 @@
+{
+    "name": "hongxunpan/eloquent-query-dsl",
+    "description": "Reusable Eloquent query DSL (Domain-Specific Language) engine for list search, filter, between, sort and pagination",
+    "type": "library",
+    "license": "MIT",
+    "homepage": "https://github.com/HongXunPan/eloquent-query-dsl",
+    "keywords": [
+        "eloquent",
+        "query-dsl",
+        "filter",
+        "sort",
+        "pagination"
+    ],
+    "support": {
+        "issues": "https://github.com/HongXunPan/eloquent-query-dsl/issues",
+        "source": "https://github.com/HongXunPan/eloquent-query-dsl"
+    },
+    "autoload": {
+        "psr-4": {
+            "HongXunPan\\EloquentQueryDsl\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "HongXunPan",
+            "email": "me@kangxuanpeng.com"
+        }
+    ],
+    "require": {
+        "php": "^8.0.20",
+        "illuminate/database": "^9.52 || ^10.0 || ^11.0 || ^12.0"
+    },
+    "scripts": {
+        "test": "@php tests/TestRunner.php"
+    }
+}
