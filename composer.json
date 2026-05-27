@@ -31,9 +31,16 @@
         "illuminate/database": "^9.52 || ^10.0 || ^11.0 || ^12.0"
     },
     "scripts": {
+        "test:skeleton": "@php tests/TestRunner.php",
+        "test:core": "@php tests/CoreRegression.php",
         "test": [
-            "@php tests/TestRunner.php",
-            "@php tests/CoreRegression.php"
+            "@test:skeleton",
+            "@test:core"
         ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HongXunPan\\EloquentQueryDsl\\Tests\\": "tests/"
+        }
     }
 }

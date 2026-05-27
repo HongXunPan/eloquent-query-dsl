@@ -12,21 +12,22 @@ use HongXunPan\EloquentQueryDsl\Derived\DslNotNullColumnDerivedFilterRule;
 use HongXunPan\EloquentQueryDsl\Derived\DslNullColumnDerivedFilterRule;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
-use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
-use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterItem;
-use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSortSectionApplier;
-use Illuminate\Database\Capsule\Manager as Capsule;
+use HongXunPan\EloquentQueryDsl\Tests\Support\Assert;
+use HongXunPan\EloquentQueryDsl\Tests\Support\FakeDslFilterNormalizer;
+use HongXunPan\EloquentQueryDsl\Tests\Support\TestDatabase;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Schema\Blueprint;
 
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/Support/Assert.php';
+require __DIR__ . '/Support/FakeDslFilterNormalizer.php';
+require __DIR__ . '/Support/TestDatabase.php';
 
 final class QueryDslCoreRegression
 {
@@ -47,7 +48,7 @@ final class QueryDslCoreRegression
 
     public function run(): void
     {
-        $this->bootDatabase();
+        TestDatabase::boot();
         $this->testQueryAndPageInputBoundaries();
         $this->testSearchSemantics();
         $this->testFilterSemantics();
@@ -58,41 +59,12 @@ final class QueryDslCoreRegression
         echo "Eloquent Query DSL core regression 通过\n";
     }
 
-    private function bootDatabase(): void
-    {
-        $capsule = new Capsule();
-        $capsule->addConnection([
-            'driver' => 'sqlite',
-            'database' => ':memory:',
-            'prefix' => '',
-        ]);
-        $capsule->setAsGlobal();
-        $capsule->bootEloquent();
-
-        $schema = $capsule->schema();
-        $schema->create('dsl_core_regression_articles', function (Blueprint $table): void {
-            $table->increments('id');
-            $table->string('title')->nullable();
-            $table->string('code')->nullable();
-            $table->string('status')->nullable();
-            $table->integer('sort_order')->nullable();
-            $table->timestamp('published_at')->nullable();
-        });
-
-        $schema->create('dsl_core_regression_comments', function (Blueprint $table): void {
-            $table->increments('id');
-            $table->unsignedInteger('article_id');
-            $table->string('body')->nullable();
-            $table->timestamp('created_at')->nullable();
-        });
-    }
-
     private function testQueryAndPageInputBoundaries(): void
     {
         $queryInput = DslQueryInput::fromRaw('{"search":{"title":"Hello"}}');
-        $this->assertTrue($queryInput->has('search'), 'query JSON object 应成功解析');
+        Assert::true($queryInput->has('search'), 'query JSON object 应成功解析');
 
-        $this->assertThrows(
+        Assert::throws(
             fn() => DslQueryInput::fromRaw('[1,2]'),
             DslQueryDslException::class,
             'query格式错误'
@@ -100,16 +72,16 @@ final class QueryDslCoreRegression
 
         $pageInput = DslPageInput::fromRaw('{"page":"2","limit":"30"}', '200');
         $paginationRequest = DslPaginationRequest::fromPageInput($pageInput);
-        $this->assertSame(1, $paginationRequest->page(), 'export_limit 生效时 page 应回到 1');
-        $this->assertSame(200, $paginationRequest->limit(), 'export_limit 生效时 limit 应切换为 export_limit');
-        $this->assertSame(200, $paginationRequest->exportLimit(), 'export_limit 应成功解析');
+        Assert::same(1, $paginationRequest->page(), 'export_limit 生效时 page 应回到 1');
+        Assert::same(200, $paginationRequest->limit(), 'export_limit 生效时 limit 应切换为 export_limit');
+        Assert::same(200, $paginationRequest->exportLimit(), 'export_limit 应成功解析');
 
         $fallbackRequest = DslPaginationRequest::fromPageInput(
             DslPageInput::fromRaw(['page' => '0', 'limit' => 'abc'], 'oops')
         );
-        $this->assertSame(1, $fallbackRequest->page(), '非法 page 应回退默认第一页');
-        $this->assertSame(20, $fallbackRequest->limit(), '非法 limit / export_limit 应回退默认 limit');
-        $this->assertSame(null, $fallbackRequest->exportLimit(), '非法 export_limit 不应写入分页事实');
+        Assert::same(1, $fallbackRequest->page(), '非法 page 应回退默认第一页');
+        Assert::same(20, $fallbackRequest->limit(), '非法 limit / export_limit 应回退默认 limit');
+        Assert::same(null, $fallbackRequest->exportLimit(), '非法 export_limit 不应写入分页事实');
     }
 
     private function testSearchSemantics(): void
@@ -120,28 +92,31 @@ final class QueryDslCoreRegression
             ->searchRightLike(['code', 'display_code'])
             ->allowDerivedSearch('display_code', function (Builder $query, string $value, string $mode): void {
                 $pattern = $mode === 'right_like' ? $value . '%' : '%' . $value . '%';
-                $query->whereRaw("CONCAT(code, '-', id) LIKE ?", [$pattern]);
+                $query->whereRaw("code || '-' || id LIKE ?", [$pattern]);
             });
 
         $fullLikeQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
             'search' => ['title' => 'Hello'],
         ]));
-        $this->assertContains('title" like ?', $this->normalizeSql($fullLikeQuery), 'full_like 应写入 like 条件');
-        $this->assertSame(['%Hello%'], $fullLikeQuery->getBindings(), 'full_like 绑定值应带两侧百分号');
+        Assert::contains('title" like ?', $this->normalizeSql($fullLikeQuery), 'full_like 应写入 like 条件');
+        Assert::same(['%Hello%'], $fullLikeQuery->getBindings(), 'full_like 绑定值应带两侧百分号');
+        Assert::resultIds($fullLikeQuery, [1, 2], 'full_like 生效结果集应匹配输入条件');
 
         $rightLikeQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
             'search' => ['code' => 'AB'],
         ]));
-        $this->assertContains('code" like ?', $this->normalizeSql($rightLikeQuery), 'right_like 应写入 like 条件');
-        $this->assertSame(['AB%'], $rightLikeQuery->getBindings(), 'right_like 绑定值应只带右侧百分号');
+        Assert::contains('code" like ?', $this->normalizeSql($rightLikeQuery), 'right_like 应写入 like 条件');
+        Assert::same(['AB%'], $rightLikeQuery->getBindings(), 'right_like 绑定值应只带右侧百分号');
+        Assert::resultIds($rightLikeQuery, [1, 2], 'right_like 生效结果集应匹配输入条件');
 
         $derivedSearchQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
             'search' => ['display_code' => 'AC'],
         ]));
-        $this->assertContains("concat(code, '-', id) like ?", $this->normalizeSql($derivedSearchQuery), 'derived search 应命中自定义 handler');
-        $this->assertSame(['AC%'], $derivedSearchQuery->getBindings(), 'derived search 应按 right_like 绑定值');
+        Assert::contains("code || '-' || id like ?", $this->normalizeSql($derivedSearchQuery), 'derived search 应命中自定义 handler');
+        Assert::same(['AC%'], $derivedSearchQuery->getBindings(), 'derived search 应按 right_like 绑定值');
+        Assert::resultIds($derivedSearchQuery, [3], 'derived search 生效结果集应匹配输入条件');
 
-        $this->assertThrows(
+        Assert::throws(
             fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])),
             DslQueryDslException::class,
             '未开放字段'
@@ -154,34 +129,41 @@ final class QueryDslCoreRegression
         $whereQuery = $this->kernel->apply($this->newArticleQuery(), $whereDefinition, DslQueryInput::fromRaw([
             'filter' => ['status' => 'draft'],
         ]));
-        $this->assertContains('status" = ?', $this->normalizeSql($whereQuery), '单值 filter 应生成 where');
-        $this->assertSame(['draft'], $whereQuery->getBindings(), '单值 filter 绑定值应保持原样');
+        Assert::contains('status" = ?', $this->normalizeSql($whereQuery), '单值 filter 应生成 where');
+        Assert::same(['draft'], $whereQuery->getBindings(), '单值 filter 绑定值应保持原样');
+        Assert::resultIds($whereQuery, [2], '单值 filter 生效结果集应匹配输入条件');
 
         $whereInDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['id']);
         $whereInInput = DslQueryInput::fromRaw(['filter' => ['id' => [1, 2]]]);
         $whereInQuery = $this->kernel->apply($this->newArticleQuery(), $whereInDefinition, $whereInInput);
-        $this->assertContains('id" in (?, ?)', $this->normalizeSql($whereInQuery), '多值 filter 应生成 whereIn');
-        $this->assertSame([1, 2], $whereInQuery->getBindings(), 'whereIn 绑定值应保持数组值');
+        Assert::contains('id" in (?, ?)', $this->normalizeSql($whereInQuery), '多值 filter 应生成 whereIn');
+        Assert::same([1, 2], $whereInQuery->getBindings(), 'whereIn 绑定值应保持数组值');
+        Assert::resultIds($whereInQuery, [1, 2], 'whereIn 生效结果集应匹配输入条件');
 
         $defaultRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status' => 'default:draft']);
         $defaultRuleValues = $this->filterSectionApplier->filterValues($defaultRuleDefinition, DslQueryInput::empty());
-        $this->assertSame('draft', $defaultRuleValues->singleValue('status'), 'fake normalizer 应支持 default 规则');
+        Assert::same('draft', $defaultRuleValues->singleValue('status'), 'fake normalizer 应支持 default 规则');
+        $defaultRuleQuery = $this->kernel->apply($this->newArticleQuery(), $defaultRuleDefinition, DslQueryInput::empty());
+        Assert::same(['draft'], $defaultRuleQuery->getBindings(), 'default filter 绑定值应来自默认规则');
+        Assert::resultIds($defaultRuleQuery, [2], 'default filter 生效结果集应匹配默认输入条件');
 
         $trimRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status' => 'trim']);
-        $trimRuleValues = $this->filterSectionApplier->filterValues($trimRuleDefinition, DslQueryInput::fromRaw([
-            'filter' => ['status' => '  draft  '],
-        ]));
-        $this->assertSame('draft', $trimRuleValues->singleValue('status'), 'fake normalizer 应支持 trim 规则');
+        $trimRuleInput = DslQueryInput::fromRaw(['filter' => ['status' => '  draft  ']]);
+        $trimRuleValues = $this->filterSectionApplier->filterValues($trimRuleDefinition, $trimRuleInput);
+        Assert::same('draft', $trimRuleValues->singleValue('status'), 'fake normalizer 应支持 trim 规则');
+        $trimRuleQuery = $this->kernel->apply($this->newArticleQuery(), $trimRuleDefinition, $trimRuleInput);
+        Assert::same(['draft'], $trimRuleQuery->getBindings(), 'trim filter 绑定值应使用归一化结果');
+        Assert::resultIds($trimRuleQuery, [2], 'trim filter 生效结果集应匹配归一化输入条件');
 
         $requiredDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['article_id' => 'required']);
-        $this->assertThrows(
+        Assert::throws(
             fn() => $this->filterSectionApplier->filterValues($requiredDefinition, DslQueryInput::empty()),
             DslQueryDslException::class,
             '请输入article_id'
         );
 
         $normalizerMissingApplier = new DslFilterSectionApplier();
-        $this->assertThrows(
+        Assert::throws(
             fn() => $normalizerMissingApplier->filterValues($trimRuleDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
             DslQueryDslDefinitionException::class,
             'filter normalizer 未配置'
@@ -199,8 +181,10 @@ final class QueryDslCoreRegression
         $notNullQuery = $this->kernel->apply($this->newArticleQuery(), $nullMapDefinition, DslQueryInput::fromRaw([
             'filter' => ['published_state' => 'ready'],
         ]));
-        $this->assertContains('published_at" is null', $this->normalizeSql($nullQuery), 'derived rule map 应支持 null');
-        $this->assertContains('published_at" is not null', $this->normalizeSql($notNullQuery), 'derived rule map 应支持 not_null');
+        Assert::contains('published_at" is null', $this->normalizeSql($nullQuery), 'derived rule map 应支持 null');
+        Assert::contains('published_at" is not null', $this->normalizeSql($notNullQuery), 'derived rule map 应支持 not_null');
+        Assert::resultIds($nullQuery, [2], 'derived null filter 生效结果集应匹配输入条件');
+        Assert::resultIds($notNullQuery, [1, 3], 'derived not_null filter 生效结果集应匹配输入条件');
 
         $relationRuleDefinition = DslQueryDefinition::make('article')
             ->strict(true)
@@ -214,14 +198,16 @@ final class QueryDslCoreRegression
         $doesntHaveRelationQuery = $this->kernel->apply($this->newArticleQuery(), $relationRuleDefinition, DslQueryInput::fromRaw([
             'filter' => ['comment_state' => 'none'],
         ]));
-        $this->assertContains('exists', $this->normalizeSql($hasRelationQuery), 'derived rule map 应支持 has');
-        $this->assertContains('not exists', $this->normalizeSql($doesntHaveRelationQuery), 'derived rule map 应支持 doesnt_have');
+        Assert::contains('exists', $this->normalizeSql($hasRelationQuery), 'derived rule map 应支持 has');
+        Assert::contains('not exists', $this->normalizeSql($doesntHaveRelationQuery), 'derived rule map 应支持 doesnt_have');
+        Assert::resultIds($hasRelationQuery, [1, 2], 'derived has relation filter 生效结果集应匹配输入条件');
+        Assert::resultIds($doesntHaveRelationQuery, [3], 'derived doesnt_have relation filter 生效结果集应匹配输入条件');
     }
 
     private function testStrictBoundaries(): void
     {
         $strictDefinition = DslQueryDefinition::make('article')->strict(true)->allowSearch(['title']);
-        $this->assertThrows(
+        Assert::throws(
             fn() => $this->kernel->apply($this->newArticleQuery(), $strictDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
             DslQueryDslException::class,
             '当前查询未开放 filter 能力'
@@ -232,7 +218,8 @@ final class QueryDslCoreRegression
             DslQueryDefinition::make('article')->strict(false)->allowSearch(['title']),
             DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])
         );
-        $this->assertNotContains('where', $this->normalizeSql($looseFieldQuery), 'strict(false) 下未开放字段应被忽略');
+        Assert::notContains('where', $this->normalizeSql($looseFieldQuery), 'strict(false) 下未开放字段应被忽略');
+        Assert::resultIds($looseFieldQuery, [1, 2, 3], 'strict(false) 下未开放字段不应影响结果集');
     }
 
     private function testRelationSemanticsAndBoundaries(): void
@@ -244,22 +231,24 @@ final class QueryDslCoreRegression
         $relationSearchQuery = $this->kernel->apply($this->newArticleQuery(), $relationSearchDefinition, DslQueryInput::fromRaw([
             'search' => ['comments' => ['body' => 'first']],
         ]));
-        $this->assertContains('exists', $this->normalizeSql($relationSearchQuery), 'relation search 应转换为 whereHas');
-        $this->assertContains('"body" like ?', $this->normalizeSql($relationSearchQuery), 'relation search 应命中关联字段 like');
-        $this->assertSame(['%first%'], $relationSearchQuery->getBindings(), 'relation search 绑定值应正确');
+        Assert::contains('exists', $this->normalizeSql($relationSearchQuery), 'relation search 应转换为 whereHas');
+        Assert::contains('"body" like ?', $this->normalizeSql($relationSearchQuery), 'relation search 应命中关联字段 like');
+        Assert::same(['%first%'], $relationSearchQuery->getBindings(), 'relation search 绑定值应正确');
+        Assert::resultIds($relationSearchQuery, [1], 'relation search 生效结果集应匹配输入条件');
 
         $relationFilterDefinition = DslQueryDefinition::make('article')
             ->relation('comments', 'comments')
             ->strict(true)
             ->allowFilter(['comments.body']);
         $relationFilterQuery = $this->kernel->apply($this->newArticleQuery(), $relationFilterDefinition, DslQueryInput::fromRaw([
-            'filter' => ['comments' => ['body' => 'first']],
+            'filter' => ['comments' => ['body' => 'first comment']],
         ]));
-        $this->assertContains('exists', $this->normalizeSql($relationFilterQuery), 'relation filter 应转换为 whereHas');
-        $this->assertContains('"body" = ?', $this->normalizeSql($relationFilterQuery), 'relation filter 应命中关联字段 where');
-        $this->assertSame(['first'], $relationFilterQuery->getBindings(), 'relation filter 绑定值应正确');
+        Assert::contains('exists', $this->normalizeSql($relationFilterQuery), 'relation filter 应转换为 whereHas');
+        Assert::contains('"body" = ?', $this->normalizeSql($relationFilterQuery), 'relation filter 应命中关联字段 where');
+        Assert::same(['first comment'], $relationFilterQuery->getBindings(), 'relation filter 绑定值应正确');
+        Assert::resultIds($relationFilterQuery, [1], 'relation filter 生效结果集应匹配输入条件');
 
-        $this->assertThrows(
+        Assert::throws(
             fn() => $this->kernel->apply(
                 $this->newArticleQuery(),
                 DslQueryDefinition::make('article')->strict(true)->allowSearch(['comments.body']),
@@ -279,10 +268,11 @@ final class QueryDslCoreRegression
                 ['field' => 'id', 'order' => 'asc'],
             ],
         ]));
-        $this->assertContains('order by "sort_order" desc, "id" asc', $this->normalizeSql($explicitSortQuery), '显式排序应保持声明顺序');
+        Assert::contains('order by "sort_order" desc, "id" asc', $this->normalizeSql($explicitSortQuery), '显式排序应保持声明顺序');
+        Assert::resultIds($explicitSortQuery, [3, 1, 2], '显式排序生效结果集应匹配排序条件');
 
         $ascOnlyDefinition = DslQueryDefinition::make('article')->strict(true)->allowSort(['sort_order'])->sortAscOnly(['sort_order']);
-        $this->assertThrows(
+        Assert::throws(
             fn() => $this->kernel->apply($this->newArticleQuery(), $ascOnlyDefinition, DslQueryInput::fromRaw([
                 'sort' => [['field' => 'sort_order', 'order' => 'desc']],
             ])),
@@ -301,15 +291,16 @@ final class QueryDslCoreRegression
         $derivedDefaultSortHitQuery = $this->kernel->apply($this->newArticleQuery(), $derivedDefaultSortDefinition, DslQueryInput::fromRaw([
             'filter' => ['tab' => 'pending'],
         ]));
-        $this->assertContains('order by "id" asc', $this->normalizeSql($derivedDefaultSortHitQuery), '命中 derived default sort 时应优先使用派生排序');
-        $this->assertNotContains('sort_order', $this->normalizeSql($derivedDefaultSortHitQuery), '命中 derived default sort 时不应回退 default sort');
+        Assert::contains('order by "id" asc', $this->normalizeSql($derivedDefaultSortHitQuery), '命中 derived default sort 时应优先使用派生排序');
+        Assert::notContains('sort_order', $this->normalizeSql($derivedDefaultSortHitQuery), '命中 derived default sort 时不应回退 default sort');
 
         $batchDefaultSortDefinition = DslQueryDefinition::make('article')->strict(true)->defaultSortMany(
             DslQueryDefaultSort::desc('sort_order', 'article'),
             DslQueryDefaultSort::asc('id', 'article')
         );
         $batchDefaultSortQuery = $this->kernel->apply($this->newArticleQuery(), $batchDefaultSortDefinition, DslQueryInput::empty());
-        $this->assertContains('order by "sort_order" desc, "id" asc', $this->normalizeSql($batchDefaultSortQuery), 'defaultSortMany 应批量声明默认排序');
+        Assert::contains('order by "sort_order" desc, "id" asc', $this->normalizeSql($batchDefaultSortQuery), 'defaultSortMany 应批量声明默认排序');
+        Assert::resultIds($batchDefaultSortQuery, [3, 1, 2], 'defaultSortMany 生效结果集应匹配默认排序条件');
     }
 
     private function newArticleQuery(): Builder
@@ -321,166 +312,6 @@ final class QueryDslCoreRegression
     {
         $sql = strtolower($query->toSql());
         return (string)preg_replace('/\s+/', ' ', $sql);
-    }
-
-    private function assertSame(mixed $expected, mixed $actual, string $message): void
-    {
-        if ($expected !== $actual) {
-            throw new RuntimeException($message . "\nexpected: " . var_export($expected, true) . "\nactual: " . var_export($actual, true));
-        }
-    }
-
-    private function assertTrue(bool $condition, string $message): void
-    {
-        if (!$condition) {
-            throw new RuntimeException($message);
-        }
-    }
-
-    private function assertContains(string $needle, string $haystack, string $message): void
-    {
-        if (!str_contains($haystack, strtolower($needle))) {
-            throw new RuntimeException($message . "\nneedle: " . $needle . "\nhaystack: " . $haystack);
-        }
-    }
-
-    private function assertNotContains(string $needle, string $haystack, string $message): void
-    {
-        if (str_contains($haystack, strtolower($needle))) {
-            throw new RuntimeException($message . "\nneedle: " . $needle . "\nhaystack: " . $haystack);
-        }
-    }
-
-    private function assertThrows(callable $callback, string $expectedException, string $messageContains = ''): void
-    {
-        try {
-            $callback();
-        } catch (Throwable $throwable) {
-            if (!$throwable instanceof $expectedException) {
-                throw new RuntimeException('异常类型不符合预期：' . $throwable::class . '，期望：' . $expectedException, 0, $throwable);
-            }
-
-            if ($messageContains !== '' && !str_contains($throwable->getMessage(), $messageContains)) {
-                throw new RuntimeException('异常消息不符合预期：' . $throwable->getMessage() . '，期望包含：' . $messageContains, 0, $throwable);
-            }
-
-            return;
-        }
-
-        throw new RuntimeException('预期应抛出异常：' . $expectedException);
-    }
-}
-
-final class FakeDslFilterNormalizer implements DslFilterNormalizer
-{
-    public function normalize(array $payload, array $rules, array $options = array()): DslNormalizedFilterSet
-    {
-        $normalizedPayload = $payload;
-        $items = [];
-        $errors = [];
-
-        foreach ($rules as $payloadField => $rule) {
-            $rule = trim($rule);
-            $valueInfo = $this->getArrayValueByPath($normalizedPayload, $payloadField);
-
-            if (str_contains($rule, 'default:') && !$valueInfo['exists']) {
-                $default = $this->ruleArgument($rule, 'default:');
-                $this->setArrayValueByPath($normalizedPayload, $payloadField, $default);
-                $valueInfo = ['exists' => true, 'value' => $default];
-            }
-
-            if (str_contains($rule, 'required') && !$valueInfo['exists']) {
-                $errors[] = '请输入' . $payloadField;
-                continue;
-            }
-
-            if (!$valueInfo['exists']) {
-                continue;
-            }
-
-            $value = $valueInfo['value'];
-            if (str_contains($rule, 'trim') && is_string($value)) {
-                $value = trim($value);
-                $this->setArrayValueByPath($normalizedPayload, $payloadField, $value);
-            }
-
-            $items[$payloadField] = new DslNormalizedFilterItem($payloadField, $this->normalizeQueryValues($value));
-        }
-
-        if ($errors !== []) {
-            return DslNormalizedFilterSet::failure($errors);
-        }
-
-        return DslNormalizedFilterSet::success($normalizedPayload, $items);
-    }
-
-    private function ruleArgument(string $rule, string $prefix): string
-    {
-        foreach (explode('|', $rule) as $segment) {
-            $segment = trim($segment);
-            if (str_starts_with($segment, $prefix)) {
-                return substr($segment, strlen($prefix));
-            }
-        }
-
-        return '';
-    }
-
-    /**
-     * @return array{exists: bool, value: mixed}
-     */
-    private function getArrayValueByPath(array $data, string $path): array
-    {
-        if ($path === '') {
-            return ['exists' => true, 'value' => $data];
-        }
-
-        $current = $data;
-        foreach (explode('.', $path) as $segment) {
-            if (!is_array($current) || !array_key_exists($segment, $current)) {
-                return ['exists' => false, 'value' => null];
-            }
-            $current = $current[$segment];
-        }
-
-        return ['exists' => true, 'value' => $current];
-    }
-
-    private function setArrayValueByPath(array &$data, string $path, mixed $value): void
-    {
-        $current = &$data;
-        foreach (explode('.', $path) as $index => $segment) {
-            if ($index === count(explode('.', $path)) - 1) {
-                $current[$segment] = $value;
-                return;
-            }
-
-            if (!isset($current[$segment]) || !is_array($current[$segment])) {
-                $current[$segment] = [];
-            }
-            $current = &$current[$segment];
-        }
-    }
-
-    /**
-     * @return array<int, mixed>
-     */
-    private function normalizeQueryValues(mixed $value): array
-    {
-        if (is_array($value)) {
-            return array_values(array_filter($value, fn(mixed $item): bool => $this->hasMeaningfulValue($item)));
-        }
-
-        return $this->hasMeaningfulValue($value) ? [$value] : [];
-    }
-
-    private function hasMeaningfulValue(mixed $value): bool
-    {
-        if (is_array($value)) {
-            return $value !== [];
-        }
-
-        return $value || $value === '0' || $value === 0;
     }
 }
 

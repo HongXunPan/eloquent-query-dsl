@@ -94,5 +94,41 @@ composer test
 
 当前 `composer test` 会执行：
 
-- `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
-- `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression，覆盖 query/page 输入、search/filter/between/sort、relation、strict、derived filter/default sort 等核心语义。
+- `composer test:skeleton` / `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
+- `composer test:core` / `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
+
+包级 core regression 的标准断言口径是：
+
+1. 输入条件：明确给出 `query / page / export_limit` payload；
+2. 生效 SQL：断言 `toSql()` 中关键 `where / whereIn / exists / order by` 片段；
+3. 绑定值：断言 `getBindings()` 与输入归一化结果一致；
+4. 实际结果：在 SQLite in-memory fixture 中断言最终命中的模型 ID 顺序。
+
+共享测试支撑位于 `tests/Support/`：
+
+- `Assert.php`：无 PHPUnit 依赖的最小断言工具；
+- `TestDatabase.php`：SQLite in-memory schema 与 fixture；
+- `FakeDslFilterNormalizer.php`：包级测试用的中性 filter normalizer，不依赖业务仓 validator。
+
+## CI
+
+本仓提供 GitHub Actions 工作流：`.github/workflows/ci.yml`。
+
+触发条件：
+
+- `push`
+- `pull_request`
+
+默认矩阵：
+
+- PHP 8.0
+- PHP 8.2
+- PHP 8.3
+
+CI 会执行：
+
+```bash
+composer validate --no-check-publish
+composer install --no-interaction --prefer-dist --no-progress
+composer test
+```
