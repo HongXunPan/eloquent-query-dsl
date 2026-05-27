@@ -5,36 +5,53 @@ declare(strict_types=1);
 use HongXunPan\EloquentQueryDsl\Package;
 use HongXunPan\EloquentQueryDsl\Condition\DslFilterCondition;
 use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
+use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
+use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
+use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterItem;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
+use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($autoload)) {
     require $autoload;
 } else {
-    require __DIR__ . '/../src/Package.php';
-    require __DIR__ . '/../src/Exception/DslQueryDslDefinitionException.php';
-    require __DIR__ . '/../src/Exception/DslQueryDslException.php';
-    require __DIR__ . '/../src/Exception/DslQueryDslRuntimeException.php';
-    require __DIR__ . '/../src/Field/DslFieldPath.php';
-    require __DIR__ . '/../src/Condition/DslCondition.php';
-    require __DIR__ . '/../src/Condition/DslFieldCondition.php';
-    require __DIR__ . '/../src/Condition/DslFilterCondition.php';
-    require __DIR__ . '/../src/Condition/DslSearchCondition.php';
-    require __DIR__ . '/../src/Condition/DslBetweenCondition.php';
-    require __DIR__ . '/../src/Condition/DslSortCondition.php';
-    require __DIR__ . '/../src/Filter/Value/DslNormalizedFilterItem.php';
-    require __DIR__ . '/../src/Filter/Value/DslNormalizedFilterSet.php';
-    require __DIR__ . '/../src/Filter/Contract/DslFilterNormalizer.php';
+    spl_autoload_register(static function (string $class): void {
+        $prefix = 'HongXunPan\\EloquentQueryDsl\\';
+        if (!str_starts_with($class, $prefix)) {
+            return;
+        }
+
+        $relativeClass = substr($class, strlen($prefix));
+        $path = __DIR__ . '/../src/' . str_replace('\\', '/', $relativeClass) . '.php';
+        if (is_file($path)) {
+            require $path;
+        }
+    });
 }
 
 $fieldPath = DslFieldPath::fromDefinition('status', 'activity');
 $relationFieldPath = DslFieldPath::fromInput('alumni_card.real_name', 'activity');
 $filterCondition = DslFilterCondition::fromField($fieldPath, 'published');
 $sortCondition = DslSortCondition::make($fieldPath, 'DESC');
+$definition = DslQueryDefinition::make('activity')
+    ->allowSearch(['title'])
+    ->allowFilter(['status' => 'string'])
+    ->allowSort(['updated_at'])
+    ->defaultSort('updated_at', 'DESC')
+    ->strict();
+$statusFilterDefinition = $definition->getSection('filter')?->field('activity.status');
+$filterValue = DslFilterValue::fromDefinition($statusFilterDefinition, ['published']);
+$filterValues = new DslFilterValues();
+$filterValues->put($filterValue);
+$queryInput = DslQueryInput::fromRaw(['filter' => ['status' => 'published']]);
+$pageInput = DslPageInput::fromRaw(['page' => '2', 'limit' => '15']);
+$paginationRequest = DslPaginationRequest::fromPageInput($pageInput);
 $filterItem = new DslNormalizedFilterItem('status', ['published']);
 $filterSet = DslNormalizedFilterSet::success(
     ['status' => 'published'],
@@ -50,6 +67,11 @@ $assertions = [
     '字段路径可解析 relation 字段' => $relationFieldPath->canonical() === 'alumni_card.real_name' && $relationFieldPath->isRelation(),
     'filter condition 保留 section 与值' => $filterCondition->sectionName() === 'filter' && $filterCondition->value() === 'published',
     'sort condition 归一化排序方向' => $sortCondition->order() === DslSortCondition::ORDER_DESC,
+    'definition 可声明查询能力' => $definition->isStrict() && $definition->getSection('search')?->hasField('activity.title'),
+    'definition 可声明默认排序' => $definition->defaultSorts()[0]->fieldPath()->canonical() === 'activity.updated_at',
+    'filter value 集合可按短字段读取' => $filterValues->singleValue('status') === 'published',
+    'query input 可解析 section' => $queryInput->has('filter') && $queryInput->get('filter')?->isArray(),
+    'page input 可解析分页事实' => $paginationRequest->page() === 2 && $paginationRequest->limit() === 15,
     'filter normalizer 契约可加载' => interface_exists(DslFilterNormalizer::class),
     'filter item 保留 payload 字段' => $filterItem->payloadField() === 'status',
     'filter item 保留归一化值列表' => $filterItem->normalizedValues() === ['published'],
