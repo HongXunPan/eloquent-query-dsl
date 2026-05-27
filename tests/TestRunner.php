@@ -6,6 +6,7 @@ use HongXunPan\EloquentQueryDsl\Package;
 use HongXunPan\EloquentQueryDsl\Condition\DslFilterCondition;
 use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
+use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
@@ -14,8 +15,10 @@ use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterItem;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
+use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
+use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 
 $autoload = __DIR__ . '/../vendor/autoload.php';
 if (is_file($autoload)) {
@@ -52,6 +55,20 @@ $filterValues->put($filterValue);
 $queryInput = DslQueryInput::fromRaw(['filter' => ['status' => 'published']]);
 $pageInput = DslPageInput::fromRaw(['page' => '2', 'limit' => '15']);
 $paginationRequest = DslPaginationRequest::fromPageInput($pageInput);
+$filterSectionApplier = new DslFilterSectionApplier();
+$filterConditions = $filterSectionApplier->conditions(
+    DslQueryDefinition::make('activity')->allowFilter(['status']),
+    DslQueryInput::fromRaw(['filter' => ['status' => 'published']])
+);
+$filterRuleWithoutNormalizerThrows = false;
+try {
+    $filterSectionApplier->conditions(
+        DslQueryDefinition::make('activity')->allowFilter(['status' => 'string']),
+        DslQueryInput::fromRaw(['filter' => ['status' => 'published']])
+    );
+} catch (DslQueryDslDefinitionException $exception) {
+    $filterRuleWithoutNormalizerThrows = str_contains($exception->getMessage(), 'filter normalizer');
+}
 $filterItem = new DslNormalizedFilterItem('status', ['published']);
 $filterSet = DslNormalizedFilterSet::success(
     ['status' => 'published'],
@@ -72,6 +89,9 @@ $assertions = [
     'filter value 集合可按短字段读取' => $filterValues->singleValue('status') === 'published',
     'query input 可解析 section' => $queryInput->has('filter') && $queryInput->get('filter')?->isArray(),
     'page input 可解析分页事实' => $paginationRequest->page() === 2 && $paginationRequest->limit() === 15,
+    'filter section 无规则时可生成条件' => count($filterConditions) === 1 && $filterConditions[0]->value() === 'published',
+    'filter section 有规则但无 normalizer 时阻断' => $filterRuleWithoutNormalizerThrows,
+    'kernel 入口可加载阶段标识' => (new QueryDslV2Kernel([]))->stage() === QueryDslV2Kernel::STAGE,
     'filter normalizer 契约可加载' => interface_exists(DslFilterNormalizer::class),
     'filter item 保留 payload 字段' => $filterItem->payloadField() === 'status',
     'filter item 保留归一化值列表' => $filterItem->normalizedValues() === ['published'],
