@@ -27,7 +27,7 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包仍处于 **skeleton 阶段**：已建立 Composer 包骨架、命名空间、边界说明、最小测试入口、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象；后续仍需补包级 core regression 与业务仓反接。
+当前包仍处于 **skeleton 阶段**：已建立 Composer 包骨架、命名空间、边界说明、最小测试入口、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象和包级 core regression；后续仍需业务仓反接。
 
 ## 定位
 
@@ -61,6 +61,7 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 - Definition / Derived / Input / Page
 - Filter value facts（不包含 backend validator bridge）
 - Reader / Apply / Section / Kernel
+- 包级 core regression
 
 其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
 
@@ -91,4 +92,7 @@ composer validate
 composer test
 ```
 
-当前 `composer test` 只验证包骨架与基础命名空间可加载；包级 QueryDSL core regression 会在后续批次补齐。
+当前 `composer test` 会执行：
+
+- `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
+- `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression，覆盖 query/page 输入、search/filter/between/sort、relation、strict、derived filter/default sort 等核心语义。

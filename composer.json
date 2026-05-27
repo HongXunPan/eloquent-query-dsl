@@ -31,6 +31,9 @@
         "illuminate/database": "^9.52 || ^10.0 || ^11.0 || ^12.0"
     },
     "scripts": {
-        "test": "@php tests/TestRunner.php"
+        "test": [
+            "@php tests/TestRunner.php",
+            "@php tests/CoreRegression.php"
+        ]
     }
 }
