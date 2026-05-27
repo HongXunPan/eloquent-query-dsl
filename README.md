@@ -27,7 +27,7 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包仍处于 **skeleton 阶段**：只建立 Composer 包骨架、命名空间、边界说明与最小测试入口，尚未平移 `0759-club` 后端中的 QueryDSL V2 core。
+当前包仍处于 **skeleton 阶段**：已建立 Composer 包骨架、命名空间、边界说明、最小测试入口，以及 filter normalize 的中性契约与 DTO；尚未平移 `0759-club` 后端中的 QueryDSL V2 core。
 
 ## 定位
 
@@ -50,14 +50,15 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 ## 当前边界
 
-批次 5.1 只完成最小骨架：
+当前已完成：
 
 - `composer.json`
 - `src/`
 - `tests/TestRunner.php`
 - 本 README
+- filter normalize 中性契约与 DTO
 
-后续批次进入 core 平移前，必须先补包内中性的 filter normalize contract / DTO，避免把 backend 的 `QueryDslFilterValidator / QueryDslNormalizedFilterSet` 反向带入共享包。
+后续批次进入 core 平移时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把 backend 的 `QueryDslFilterValidator / QueryDslNormalizedFilterSet` 反向带入共享包。
 
 ## 命名空间
 
