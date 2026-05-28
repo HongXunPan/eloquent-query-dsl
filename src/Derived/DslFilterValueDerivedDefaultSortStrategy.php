@@ -7,7 +7,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 
 /**
- * QueryDSL V2 基于 filter 值的派生默认排序策略。
+ * Query DSL 基于 filter 值的派生默认排序策略。
  *
  * 该对象只根据当前 filter 的单值结果返回一组默认排序定义。
  */

@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Condition;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 通用字段条件。
+ * Query DSL 通用字段条件。
  *
  * 用于承接“某个 section 下某个字段对应一个值”的条件事实。
  */

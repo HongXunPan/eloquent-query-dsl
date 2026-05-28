@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 
 /**
- * QueryDSL V2 字段路径对象。
+ * Query DSL 字段路径对象。
  *
  * 该对象只承接字段路径解析，不解析查询输入，不修改 Builder，也不承接资源业务语义。
  */
@@ -40,10 +40,7 @@ class DslFieldPath
      */
     public static function fromDefinition(string $field, string $mainEntity): self
     {
-        $mainEntity = trim($mainEntity);
-        if ($mainEntity === '') {
-            throw DslQueryDslDefinitionException::fromMessage('query dsl 主实体不能为空');
-        }
+        $mainEntity = DslIdentifier::forDefinition($mainEntity, '主实体');
 
         $originalField = $field;
         $field = trim($field);
@@ -52,25 +49,31 @@ class DslFieldPath
         }
 
         if (!str_contains($field, '.')) {
-            return new self($originalField, $mainEntity, $mainEntity, $field);
+            return new self(
+                $originalField,
+                $mainEntity,
+                $mainEntity,
+                DslIdentifier::forDefinition($field, '字段')
+            );
         }
 
-        [$entity, $actualField] = explode('.', $field, 2);
-        $entity = trim($entity);
-        $actualField = trim($actualField);
-        if ($entity === '' || $actualField === '') {
+        if (substr_count($field, '.') !== 1) {
             throw DslQueryDslDefinitionException::fromMessage('query dsl 字段格式错误：' . $field);
         }
 
-        return new self($originalField, $mainEntity, $entity, $actualField);
+        [$entity, $actualField] = explode('.', $field, 2);
+
+        return new self(
+            $originalField,
+            $mainEntity,
+            DslIdentifier::forDefinition($entity, '实体'),
+            DslIdentifier::forDefinition($actualField, '字段')
+        );
     }
 
     public static function fromInput(string $field, string $mainEntity): self
     {
-        $mainEntity = trim($mainEntity);
-        if ($mainEntity === '') {
-            throw DslQueryDslDefinitionException::fromMessage('query dsl 主实体不能为空');
-        }
+        $mainEntity = DslIdentifier::forDefinition($mainEntity, '主实体');
 
         $originalField = $field;
         $field = trim($field);
@@ -79,17 +82,26 @@ class DslFieldPath
         }
 
         if (!str_contains($field, '.')) {
-            return new self($originalField, $mainEntity, $mainEntity, $field);
+            return new self(
+                $originalField,
+                $mainEntity,
+                $mainEntity,
+                DslIdentifier::forInput($field)
+            );
         }
 
-        [$entity, $actualField] = explode('.', $field, 2);
-        $entity = trim($entity);
-        $actualField = trim($actualField);
-        if ($entity === '' || $actualField === '') {
+        if (substr_count($field, '.') !== 1) {
             throw DslQueryDslException::invalidFieldFormat();
         }
 
-        return new self($originalField, $mainEntity, $entity, $actualField);
+        [$entity, $actualField] = explode('.', $field, 2);
+
+        return new self(
+            $originalField,
+            $mainEntity,
+            DslIdentifier::forInput($entity),
+            DslIdentifier::forInput($actualField)
+        );
     }
 
     /**

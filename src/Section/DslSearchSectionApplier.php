@@ -14,7 +14,9 @@ use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 search section 应用器。
+ * Query DSL search section 应用器。
+ *
+ * @internal
  */
 class DslSearchSectionApplier implements DslSectionApplier
 {

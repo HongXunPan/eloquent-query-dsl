@@ -27,7 +27,7 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包处于 **pre-1.0 开源预备发布阶段**：已建立 Composer 包、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已提供主要 QueryDSL V2 core 对象、输入协议解析能力、开源友好主入口和包级 regression。正式 tag / Packagist 发布前仍会继续补齐发布说明、协作文件与质量门禁。
+当前包处于 **pre-1.0 开源预备发布阶段**：已建立 Composer 包、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已提供 Query DSL core 对象、输入协议解析能力、开源友好主入口和包级 regression。正式 tag / Packagist 发布前仍会继续补齐发布说明、协作文件与质量门禁。
 
 相关项目文件：
 
@@ -42,9 +42,11 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 ```php
 use HongXunPan\EloquentQueryDsl\QueryDsl;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 
 $result = QueryDsl::for($builder, $definition)
     ->from($params)
+    ->paginationPolicy(DslPaginationPolicy::default()->withMaxLimit(100))
     ->filterNormalizer($normalizer)
     ->apply();
 
@@ -59,6 +61,7 @@ $pagination = $result->pagination();
 - `$definition` 是 `DslQueryDefinition`，只声明允许哪些字段和查询能力；
 - `$params` 是外部输入，可以来自 HTTP request、CLI 参数或业务自定义数组；
 - `$normalizer` 是 `DslFilterNormalizer`，用于接入项目自己的 filter 值归一化或校验能力；
+- `DslPaginationPolicy` 用于限制输出给使用侧的分页事实，例如 `limit / export_limit` 上限；
 - `$result` 是 `QueryDslResult`，只返回中性的查询事实，不负责 HTTP response、分页响应结构或业务异常翻译。
 
 ### 默认输入协议
@@ -153,6 +156,47 @@ $result = QueryDsl::for($builder, $definition)
 
 `DslInputParser` 只负责输入解析，不负责字段白名单、filter 归一化、查询执行或响应结构。
 
+### 分页事实策略
+
+本包不会执行 `count / paginate / forPage`，但会把分页输入解析为中性的 `DslPaginationRequest`。为避免使用侧误用超大分页参数，默认分页策略会限制：
+
+- `limit` 最大值：`100`；
+- `export_limit` 最大值：`1000`；
+- `export_limit` 生效时 page 固定回到默认第一页；
+- bool、float、非整数字符串不会作为有效分页值。
+
+如需按业务项目调整上限，可以通过 `DslPaginationPolicy` 显式声明：
+
+```php
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
+
+$paginationPolicy = DslPaginationPolicy::default()
+    ->withMaxLimit(50)
+    ->withMaxExportLimit(500);
+
+$result = QueryDsl::for($builder, $definition)
+    ->from($params)
+    ->paginationPolicy($paginationPolicy)
+    ->apply();
+```
+
+使用侧仍负责真正的分页执行与 `{ page, list }` 响应包装。
+
+### 字段安全边界
+
+普通字段、实体别名与 relation 名默认只接受安全 identifier：`[A-Za-z_][A-Za-z0-9_]*`。字段路径只接受 `field` 或 `entity.field`。
+
+以下输入会被拒绝：
+
+- `id desc`
+- `id, name`
+- `count(*)`
+- `` `id` ``
+- `users.name->json`
+- `a.b.c`
+
+如果业务项目确实需要 raw SQL 或表达式查询，应通过 derived handler 在使用侧显式承接风险，不要把表达式伪装成普通字段声明。
+
 ### shared 包与使用侧分工
 
 shared 包负责：
@@ -160,7 +204,7 @@ shared 包负责：
 - 输入协议解析为标准 `DslQueryInput / DslPageInput`；
 - search / filter / between / sort 的主流程编排；
 - `DslFilterValues` 与 `DslPaginationRequest` 等中性事实；
-- `DslInputParser`、`DslInputMap`、`DslFilterNormalizer` 等扩展契约。
+- `DslInputParser`、`DslInputMap`、`DslFilterNormalizer`、`DslPaginationPolicy` 等扩展契约。
 
 使用侧负责：
 
@@ -185,9 +229,9 @@ shared 包负责：
 
 - `App\` 命名空间下的项目适配代码；
 - `simple-framework`、`ApiException`、`QueryPaginationTrait` 等业务仓桥接能力；
-- backend 旧 DSL compat 翻译层；
+- 业务仓旧 DSL compat 翻译层；
 - 业务资源字段开放清单、权限语义或页面返回结构；
-- 与 `0759-club` 特定 validator 子类绑定的异常翻译。
+- 与特定业务项目 validator 子类绑定的异常翻译。
 
 ## 当前边界
 
@@ -200,10 +244,10 @@ shared 包负责：
 - filter normalize 中性契约与 DTO
 - Exception / Field / Condition 第一组低耦合 core 对象
 - Definition / Derived / Input / Page
-- Filter value facts（不包含 backend validator bridge）
+- Filter value facts（不包含业务项目 validator bridge）
 - Reader / Apply / Section / Kernel
 - `DslInputMap / DslInputParser / DefaultDslInputParser`
-- `QueryDsl / QueryDslResult`
+- `QueryDsl / QueryDslResult / QueryDslKernel`
 - 包级 core regression
 
 ### Public API 承诺
@@ -217,11 +261,12 @@ pre-1.0 阶段推荐使用方优先依赖以下入口：
 - `Input\Contract\DslInputParser`
 - `Filter\Contract\DslFilterNormalizer`
 - `Filter\DslFilterValues`
+- `Page\DslPaginationPolicy`
 - `Page\DslPaginationRequest`
 
 `Reader / Apply / Section / Kernel / Input\Internal` 下的对象主要承接包内协作，当前不作为稳定 public API 承诺；如需自定义深层行为，优先通过 `QueryDsl`、`DslInputParser`、`DslInputMap` 与 `DslFilterNormalizer` 扩展。
 
-其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
+其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用业务项目的 validator bridge。
 
 输入解析层已拆成较小的内部职责对象：
 
@@ -233,7 +278,7 @@ pre-1.0 阶段推荐使用方优先依赖以下入口：
 
 这些对象属于包内 internal 协作层，README 推荐使用方仍优先依赖 `DslInputMap / DslInputParser / DefaultDslInputParser`。
 
-后续批次进入 backend 反接时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 `QueryDslFilterValidator`、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
+使用侧接入时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 validator bridge、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
 
 ## 命名空间
 

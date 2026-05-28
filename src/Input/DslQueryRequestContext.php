@@ -5,10 +5,11 @@ namespace HongXunPan\EloquentQueryDsl\Input;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 
 /**
- * QueryDSL V2 单次请求只读上下文。
+ * Query DSL 单次请求只读上下文。
  *
  * 该对象用于在一次 DSL 解析/执行过程中复用：
  * - definition
@@ -18,7 +19,7 @@ use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
  * - filterValues
  *
  * 它不承接匿名 array 黑盒，只暴露具名只读事实。
- * 默认属于 V2 内核 / V2Service 子类使用的请求级扩展对象，不作为普通业务层直接 new 的入口。
+ * 默认属于 内核 / 使用侧扩展使用的请求级扩展对象，不作为普通业务层直接 new 的入口。
  */
 class DslQueryRequestContext
 {
@@ -31,6 +32,7 @@ class DslQueryRequestContext
 
     protected ?DslQueryInput $queryInput;
     protected ?DslPageInput $pageInput;
+    protected ?DslPaginationPolicy $paginationPolicy;
     protected ?DslPaginationRequest $paginationRequest = null;
     protected ?DslFilterValues $filterValues = null;
 
@@ -41,28 +43,35 @@ class DslQueryRequestContext
         DslQueryDefinition $definition,
         array $requestParams = [],
         ?DslQueryInput $queryInput = null,
-        ?DslPageInput $pageInput = null
+        ?DslPageInput $pageInput = null,
+        ?DslPaginationPolicy $paginationPolicy = null
     ) {
         $this->definition = $definition;
         $this->requestParams = $requestParams;
         $this->queryInput = $queryInput;
         $this->pageInput = $pageInput;
+        $this->paginationPolicy = $paginationPolicy;
     }
 
     /**
      * @param array<string, mixed> $requestParams
      */
-    public static function fromRequestParams(DslQueryDefinition $definition, array $requestParams): self
+    public static function fromRequestParams(
+        DslQueryDefinition $definition,
+        array $requestParams,
+        ?DslPaginationPolicy $paginationPolicy = null
+    ): self
     {
-        return new self($definition, $requestParams);
+        return new self($definition, $requestParams, paginationPolicy: $paginationPolicy);
     }
 
     public static function fromQueryInput(
         DslQueryDefinition $definition,
         DslQueryInput $queryInput,
-        ?DslPageInput $pageInput = null
+        ?DslPageInput $pageInput = null,
+        ?DslPaginationPolicy $paginationPolicy = null
     ): self {
-        return new self($definition, [], $queryInput, $pageInput);
+        return new self($definition, [], $queryInput, $pageInput, $paginationPolicy);
     }
 
     public function definition(): DslQueryDefinition
@@ -92,7 +101,8 @@ class DslQueryRequestContext
     {
         if ($this->paginationRequest === null) {
             $this->paginationRequest = DslPaginationRequest::fromPageInput(
-                $this->pageInput()
+                $this->pageInput(),
+                $this->paginationPolicy
             );
         }
 

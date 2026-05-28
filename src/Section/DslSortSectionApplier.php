@@ -16,10 +16,12 @@ use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 sort section 应用器。
+ * Query DSL sort section 应用器。
  *
  * sort 的显式排序与默认排序 fallback 都属于 sort section 职责，
  * Kernel 不再特殊判断 sort 返回值。
+ *
+ * @internal
  */
 class DslSortSectionApplier implements DslSectionApplier
 {

@@ -8,10 +8,12 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 字段条件作用域应用器。
+ * Query DSL 字段条件作用域应用器。
  *
  * 只负责把字段条件按主实体 / relation 分组并应用到 Builder；
  * 不理解 search / filter / between 的具体条件语义。
+ *
+ * @internal
  */
 class DslFieldConditionScopeApplier
 {

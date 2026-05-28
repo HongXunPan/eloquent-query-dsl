@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Condition;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 区间条件。
+ * Query DSL 区间条件。
  *
  * 只描述字段区间的起止值，不负责校验区间合法性或执行 whereBetween。
  */

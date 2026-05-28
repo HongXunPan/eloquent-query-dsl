@@ -3,7 +3,7 @@
 namespace HongXunPan\EloquentQueryDsl\Page;
 
 /**
- * QueryDSL V2 对象化分页事实。
+ * Query DSL 对象化分页事实。
  *
  * 该对象承接 page / export_limit 解析后的稳定分页事实，
  * 供后续试点 Service 读取，不再在业务层长期传递分页匿名数组。
@@ -24,14 +24,15 @@ class DslPaginationRequest
         $this->exportLimit = $exportLimit;
     }
 
-    public static function fromPageInput(DslPageInput $input): self
+    public static function fromPageInput(DslPageInput $input, ?DslPaginationPolicy $policy = null): self
     {
-        $page = self::normalizePositiveInt($input->pageValue()) ?? self::DEFAULT_PAGE;
-        $limit = self::normalizePositiveInt($input->limitValue()) ?? self::DEFAULT_LIMIT;
-        $exportLimit = self::normalizePositiveInt($input->rawExportLimit());
+        $policy ??= DslPaginationPolicy::default();
+        $page = $policy->normalizePage($input->pageValue()) ?? $policy->defaultPage();
+        $limit = $policy->normalizeLimit($input->limitValue()) ?? $policy->defaultLimit();
+        $exportLimit = $policy->normalizeExportLimit($input->rawExportLimit());
 
         if ($exportLimit !== null) {
-            $page = self::DEFAULT_PAGE;
+            $page = $policy->defaultPage();
             $limit = $exportLimit;
         }
 
@@ -68,29 +69,4 @@ class DslPaginationRequest
         return $this->page === self::DEFAULT_PAGE;
     }
 
-    protected static function normalizePositiveInt(mixed $value): ?int
-    {
-        if ($value === null || $value === '') {
-            return null;
-        }
-
-        if (is_bool($value)) {
-            return null;
-        }
-
-        if (is_string($value)) {
-            $value = trim($value);
-            if ($value === '' || !is_numeric($value)) {
-                return null;
-            }
-        }
-
-        if (!is_int($value) && !is_float($value) && !is_string($value)) {
-            return null;
-        }
-
-        $value = (int)$value;
-
-        return $value > 0 ? $value : null;
-    }
 }

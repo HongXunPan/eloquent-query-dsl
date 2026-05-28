@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Input;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 
 /**
- * QueryDSL V2 查询输入 section。
+ * Query DSL 查询输入 section。
  *
  * 该对象只承接 section 名称与原始值，不预设 search / filter / sort 等具体业务含义。
  */

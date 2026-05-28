@@ -7,7 +7,7 @@ use Closure;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 派生 filter 自定义处理器。
+ * Query DSL 派生 filter 自定义处理器。
  *
  * 适用于需要结合业务上下文翻译查询的复杂筛选。
  */

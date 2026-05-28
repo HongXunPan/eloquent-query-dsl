@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Builder;
 use ReflectionFunction;
 
 /**
- * QueryDSL V2 派生 search 自定义处理器。
+ * Query DSL 派生 search 自定义处理器。
  *
  * 当前兼容旧 DSL 常见签名：
  * - (Builder $query, string $value, string $mode)

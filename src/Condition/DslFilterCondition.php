@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Condition;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 筛选条件。
+ * Query DSL 筛选条件。
  *
  * 只描述筛选字段和值，不执行规则校验或 Builder 条件拼装。
  */

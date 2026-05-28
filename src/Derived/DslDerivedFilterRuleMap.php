@@ -7,7 +7,7 @@ use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 派生 filter 规则映射。
+ * Query DSL 派生 filter 规则映射。
  *
  * 用“协议值 => 规则对象”的方式承接旧版 derived filter rule map，
  * 但内部不再暴露 type / field / relation 这类匿名数组约定。

@@ -6,10 +6,12 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 
 /**
- * QueryDSL V2 列表型 section 读取器。
+ * Query DSL 列表型 section 读取器。
  *
  * 只负责读取形如 sort 的列表型输入；
  * 不理解 item 内部字段，也不执行排序。
+ *
+ * @internal
  */
 class DslItemListReader
 {

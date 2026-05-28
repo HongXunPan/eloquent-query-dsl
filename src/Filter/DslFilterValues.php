@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Filter;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 
 /**
- * QueryDSL V2 已解析 filter 值集合。
+ * Query DSL 已解析 filter 值集合。
  *
  * 业务层通过该集合读取 filter 值，不再从匿名数组中取 required / rule / value。
  */

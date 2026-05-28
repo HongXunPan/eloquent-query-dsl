@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Definition\DslQueryFieldDefinition;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 已解析 filter 值。
+ * Query DSL 已解析 filter 值。
  *
  * 该对象用于给业务层读取已解析 filter 值；
  * 不负责 Builder 条件应用，也不作为匿名数组在业务层继续传递。

@@ -13,8 +13,9 @@ use HongXunPan\EloquentQueryDsl\Derived\DslNullColumnDerivedFilterRule;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
-use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
+use HongXunPan\EloquentQueryDsl\Kernel\QueryDslKernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSortSectionApplier;
@@ -31,14 +32,14 @@ require __DIR__ . '/Support/TestDatabase.php';
 
 final class QueryDslCoreRegression
 {
-    private QueryDslV2Kernel $kernel;
+    private QueryDslKernel $kernel;
     private DslFilterSectionApplier $filterSectionApplier;
 
     public function __construct()
     {
         $normalizer = new FakeDslFilterNormalizer();
         $this->filterSectionApplier = new DslFilterSectionApplier(filterNormalizer: $normalizer);
-        $this->kernel = new QueryDslV2Kernel([
+        $this->kernel = new QueryDslKernel([
             new \HongXunPan\EloquentQueryDsl\Section\DslSearchSectionApplier(),
             $this->filterSectionApplier,
             new \HongXunPan\EloquentQueryDsl\Section\DslBetweenSectionApplier(),
@@ -50,6 +51,7 @@ final class QueryDslCoreRegression
     {
         TestDatabase::boot();
         $this->testQueryAndPageInputBoundaries();
+        $this->testIdentifierSecurityBoundaries();
         $this->testSearchSemantics();
         $this->testFilterSemantics();
         $this->testStrictBoundaries();
@@ -82,6 +84,91 @@ final class QueryDslCoreRegression
         Assert::same(1, $fallbackRequest->page(), '非法 page 应回退默认第一页');
         Assert::same(20, $fallbackRequest->limit(), '非法 limit / export_limit 应回退默认 limit');
         Assert::same(null, $fallbackRequest->exportLimit(), '非法 export_limit 不应写入分页事实');
+
+        $boundedLimitRequest = DslPaginationRequest::fromPageInput(
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '500'])
+        );
+        Assert::same(2, $boundedLimitRequest->page(), '普通分页 page 应保持有效输入');
+        Assert::same(100, $boundedLimitRequest->limit(), '默认策略应限制超大 limit');
+
+        $boundedExportRequest = DslPaginationRequest::fromPageInput(
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '30'], '5000')
+        );
+        Assert::same(1, $boundedExportRequest->page(), 'export_limit 生效时 page 应使用默认页');
+        Assert::same(1000, $boundedExportRequest->limit(), '默认策略应限制超大 export_limit');
+        Assert::same(1000, $boundedExportRequest->exportLimit(), 'export_limit 事实应使用策略上限');
+
+        $invalidNumericRequest = DslPaginationRequest::fromPageInput(
+            DslPageInput::fromRaw(['page' => '1.5', 'limit' => true], 99.9)
+        );
+        Assert::same(1, $invalidNumericRequest->page(), '非整数字符串 page 应回退默认页');
+        Assert::same(20, $invalidNumericRequest->limit(), 'bool limit / float export_limit 应回退默认 limit');
+        Assert::same(null, $invalidNumericRequest->exportLimit(), 'float export_limit 默认不应生效');
+
+        $customPolicyRequest = DslPaginationRequest::fromPageInput(
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '80'], '150'),
+            DslPaginationPolicy::default()
+                ->withMaxLimit(50)
+                ->withMaxExportLimit(200)
+                ->withoutExportLimit()
+        );
+        Assert::same(2, $customPolicyRequest->page(), '自定义策略禁用 export_limit 后 page 应保持输入');
+        Assert::same(50, $customPolicyRequest->limit(), '自定义策略应限制 limit');
+        Assert::same(null, $customPolicyRequest->exportLimit(), '自定义策略禁用 export_limit 后不应暴露导出上限');
+    }
+
+    private function testIdentifierSecurityBoundaries(): void
+    {
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article;drop'),
+            DslQueryDslDefinitionException::class,
+            '主实体格式错误'
+        );
+
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article')->allowFilter(['status desc']),
+            DslQueryDslDefinitionException::class,
+            '字段格式错误'
+        );
+
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article')->allowSearch(['comments.body.extra']),
+            DslQueryDslDefinitionException::class,
+            '字段格式错误'
+        );
+
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article')->relation('comments.author', 'comments'),
+            DslQueryDslDefinitionException::class,
+            '关联实体格式错误'
+        );
+
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article')->relation('comments', 'comments.author'),
+            DslQueryDslDefinitionException::class,
+            'relation格式错误'
+        );
+
+        $definition = DslQueryDefinition::make('article')
+            ->strict(true)
+            ->allowFilter(['status'])
+            ->allowSort(['id']);
+
+        Assert::throws(
+            fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+                'filter' => ['status desc' => 'draft'],
+            ])),
+            DslQueryDslException::class,
+            'query字段格式错误'
+        );
+
+        Assert::throws(
+            fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+                'sort' => [['field' => 'id desc', 'order' => 'asc']],
+            ])),
+            DslQueryDslException::class,
+            'query字段格式错误'
+        );
     }
 
     private function testSearchSemantics(): void

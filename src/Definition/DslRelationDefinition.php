@@ -3,9 +3,10 @@
 namespace HongXunPan\EloquentQueryDsl\Definition;
 
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
+use HongXunPan\EloquentQueryDsl\Field\DslIdentifier;
 
 /**
- * QueryDSL V2 relation 能力定义。
+ * Query DSL relation 能力定义。
  *
  * 该对象只声明 DSL 实体别名与 ORM relation 方法名的映射，不承接查询执行。
  */
@@ -28,7 +29,10 @@ class DslRelationDefinition
             throw DslQueryDslDefinitionException::fromMessage('query dsl 关联实体与 relation 不能为空');
         }
 
-        return new self($entity, $relation);
+        return new self(
+            DslIdentifier::forDefinition($entity, '关联实体'),
+            DslIdentifier::forDefinition($relation, 'relation')
+        );
     }
 
     public function entity(): string

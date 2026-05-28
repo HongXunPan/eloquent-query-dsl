@@ -6,9 +6,10 @@ use HongXunPan\EloquentQueryDsl\Derived\DslDerivedDefaultSortStrategy;
 use HongXunPan\EloquentQueryDsl\Derived\DslDerivedFilterRuleMap;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
+use HongXunPan\EloquentQueryDsl\Field\DslIdentifier;
 
 /**
- * QueryDSL V2 查询能力定义。
+ * Query DSL 查询能力定义。
  *
  * Definition 承接服务端声明的主实体、relation、section 字段能力、默认排序与 strict 模式。
  * 它只描述“允许什么”，不解析请求 section，不生成条件，也不修改 Builder。
@@ -36,12 +37,7 @@ class DslQueryDefinition
 
     public function __construct(string $mainEntity)
     {
-        $mainEntity = trim($mainEntity);
-        if ($mainEntity === '') {
-            throw DslQueryDslDefinitionException::fromMessage('query dsl 主实体不能为空');
-        }
-
-        $this->mainEntity = $mainEntity;
+        $this->mainEntity = DslIdentifier::forDefinition($mainEntity, '主实体');
     }
 
     public static function make(string $mainEntity): self

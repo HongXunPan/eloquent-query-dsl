@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 条件对象基类。
+ * Query DSL 条件对象基类。
  *
  * 条件对象只描述已解析后的字段条件，不承接请求输入解析，也不修改 Builder。
  */

@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Page;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 
 /**
- * QueryDSL V2 分页输入对象。
+ * Query DSL 分页输入对象。
  *
  * 该对象只负责解析外部 page 协议，不参与 query section 解析，
  * 也不直接承接分页查询执行。

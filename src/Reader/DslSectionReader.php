@@ -9,10 +9,12 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 section 定义读取器。
+ * Query DSL section 定义读取器。
  *
  * 只负责 Definition 中 section / field 能力读取与 strict 模式错误收口；
  * 不解析具体 search / filter / between / sort 语义，也不修改 Builder。
+ *
+ * @internal
  */
 class DslSectionReader
 {

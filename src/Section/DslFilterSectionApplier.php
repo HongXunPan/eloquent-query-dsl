@@ -21,7 +21,9 @@ use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 filter section 应用器。
+ * Query DSL filter section 应用器。
+ *
+ * @internal
  */
 class DslFilterSectionApplier implements DslSectionApplier
 {

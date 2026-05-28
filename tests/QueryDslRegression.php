@@ -7,6 +7,7 @@ use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\QueryDsl;
 use HongXunPan\EloquentQueryDsl\Tests\Support\Assert;
 use HongXunPan\EloquentQueryDsl\Tests\Support\FakeDslFilterNormalizer;
@@ -44,7 +45,7 @@ final class QueryDslEntryRegression
                 'where_status' => ' published ',
                 'sort' => '-sort_order',
                 'page' => '2',
-                'per_page' => '10',
+                'per_page' => '500',
             ], DslInputMap::make()
                 ->flatInput()
                 ->search('title')
@@ -52,6 +53,7 @@ final class QueryDslEntryRegression
                 ->sort('sort')
                 ->page('page')
                 ->limit('per_page'))
+            ->paginationPolicy(DslPaginationPolicy::default()->withMaxLimit(50))
             ->filterNormalizer(new FakeDslFilterNormalizer())
             ->apply();
 
@@ -62,7 +64,7 @@ final class QueryDslEntryRegression
         Assert::resultIds($result->builder(), [1], 'QueryDsl 主入口生效结果集应匹配输入条件');
         Assert::same('published', $result->filterValues()->singleValue('status'), 'QueryDslResult 应暴露 filter values');
         Assert::same(2, $result->pagination()->page(), 'QueryDslResult 应暴露 page');
-        Assert::same(10, $result->pagination()->limit(), 'QueryDslResult 应暴露 limit');
+        Assert::same(50, $result->pagination()->limit(), 'QueryDslResult 应暴露策略限制后的 limit');
         Assert::true($result->context()->queryInput()->has('filter'), 'QueryDslResult 应暴露 context');
     }
 

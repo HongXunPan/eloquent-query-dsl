@@ -8,7 +8,8 @@ use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DefaultDslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
-use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
+use HongXunPan\EloquentQueryDsl\Kernel\QueryDslKernel;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Section\DslBetweenSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSearchSectionApplier;
@@ -27,6 +28,7 @@ class QueryDsl
     private ?DslInputMap $inputMap = null;
     private ?DslInputParser $inputParser = null;
     private ?DslFilterNormalizer $filterNormalizer = null;
+    private ?DslPaginationPolicy $paginationPolicy = null;
 
     private function __construct(
         private Builder $builder,
@@ -73,6 +75,13 @@ class QueryDsl
         return $this;
     }
 
+    public function paginationPolicy(DslPaginationPolicy $paginationPolicy): self
+    {
+        $this->paginationPolicy = $paginationPolicy;
+
+        return $this;
+    }
+
     public function apply(): QueryDslResult
     {
         $inputMap = $this->inputMap ?? DslInputMap::make();
@@ -80,7 +89,8 @@ class QueryDsl
         $context = DslQueryRequestContext::fromQueryInput(
             $this->definition,
             $inputParser->queryInput($this->params, $inputMap),
-            $inputParser->pageInput($this->params, $inputMap)
+            $inputParser->pageInput($this->params, $inputMap),
+            $this->paginationPolicy
         );
 
         $this->kernel()->applyContext($this->builder, $context);
@@ -88,11 +98,11 @@ class QueryDsl
         return new QueryDslResult($this->builder, $context);
     }
 
-    protected function kernel(): QueryDslV2Kernel
+    protected function kernel(): QueryDslKernel
     {
         $filterSectionApplier = new DslFilterSectionApplier(filterNormalizer: $this->filterNormalizer);
 
-        return new QueryDslV2Kernel([
+        return new QueryDslKernel([
             new DslSearchSectionApplier(),
             $filterSectionApplier,
             new DslBetweenSectionApplier(),

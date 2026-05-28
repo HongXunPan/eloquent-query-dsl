@@ -11,7 +11,7 @@ use HongXunPan\EloquentQueryDsl\Derived\DslDerivedSearchHandler;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 字段能力定义。
+ * Query DSL 字段能力定义。
  *
  * 该对象只描述某个 section 下允许使用的字段及其附加声明，不承接输入解析或 Builder 执行。
  */

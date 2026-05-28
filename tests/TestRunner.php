@@ -18,8 +18,10 @@ use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DefaultDslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
+use HongXunPan\EloquentQueryDsl\Kernel\QueryDslKernel;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
+use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 use HongXunPan\EloquentQueryDsl\QueryDsl;
 use HongXunPan\EloquentQueryDsl\QueryDslResult;
@@ -60,6 +62,10 @@ $filterValues->put($filterValue);
 $queryInput = DslQueryInput::fromRaw(['filter' => ['status' => 'published']]);
 $pageInput = DslPageInput::fromRaw(['page' => '2', 'limit' => '15']);
 $paginationRequest = DslPaginationRequest::fromPageInput($pageInput);
+$boundedPaginationRequest = DslPaginationRequest::fromPageInput(
+    DslPageInput::fromRaw(['page' => '1', 'limit' => '999']),
+    DslPaginationPolicy::default()->withMaxLimit(50)
+);
 $filterSectionApplier = new DslFilterSectionApplier();
 $filterConditions = $filterSectionApplier->conditions(
     DslQueryDefinition::make('activity')->allowFilter(['status']),
@@ -103,9 +109,11 @@ $assertions = [
     'filter value 集合可按短字段读取' => $filterValues->singleValue('status') === 'published',
     'query input 可解析 section' => $queryInput->has('filter') && $queryInput->get('filter')?->isArray(),
     'page input 可解析分页事实' => $paginationRequest->page() === 2 && $paginationRequest->limit() === 15,
+    'pagination policy 可限制分页上限' => $boundedPaginationRequest->limit() === 50,
     'filter section 无规则时可生成条件' => count($filterConditions) === 1 && $filterConditions[0]->value() === 'published',
     'filter section 有规则但无 normalizer 时阻断' => $filterRuleWithoutNormalizerThrows,
-    'kernel 入口可加载阶段标识' => (new QueryDslV2Kernel([]))->stage() === QueryDslV2Kernel::STAGE,
+    'kernel 入口可加载阶段标识' => (new QueryDslKernel([]))->stage() === QueryDslKernel::STAGE,
+    '旧 kernel 命名仍作为 internal 兼容入口' => (new QueryDslV2Kernel([]))->stage() === QueryDslKernel::STAGE,
     'filter normalizer 契约可加载' => interface_exists(DslFilterNormalizer::class),
     'filter item 保留 payload 字段' => $filterItem->payloadField() === 'status',
     'filter item 保留归一化值列表' => $filterItem->normalizedValues() === ['published'],

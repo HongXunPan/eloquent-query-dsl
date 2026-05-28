@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefaultSort;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 
 /**
- * QueryDSL V2 派生默认排序策略。
+ * Query DSL 派生默认排序策略。
  *
  * 该对象只根据某个已解析 filter 值决定默认排序列表；
  * 不读取 query 输入，也不直接修改 Builder。

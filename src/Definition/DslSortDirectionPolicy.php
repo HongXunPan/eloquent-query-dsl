@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 
 /**
- * QueryDSL V2 排序方向策略。
+ * Query DSL 排序方向策略。
  *
  * 该对象只描述某个 sort 字段允许的排序方向限制，
  * 不负责解析 sort item，也不直接执行排序。

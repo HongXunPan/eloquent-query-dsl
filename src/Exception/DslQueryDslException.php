@@ -5,7 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Exception;
 use InvalidArgumentException;
 
 /**
- * QueryDSL V2 输入期异常。
+ * Query DSL 输入期异常。
  *
  * 该异常只承接用户输入导致的 DSL 错误，不直接承担定义期或运行期异常职责。
  * 项目边界可按需要把该异常转换为项目统一业务异常。

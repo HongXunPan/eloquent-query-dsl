@@ -8,10 +8,12 @@ use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 
 /**
- * QueryDSL V2 字段 map 型 section 读取器。
+ * Query DSL 字段 map 型 section 读取器。
  *
  * 只负责读取形如 search / filter / between 的字段 map 输入；
  * 不理解字段值语义，不归一化 filter value，也不修改 Builder。
+ *
+ * @internal
  */
 class DslFieldMapReader
 {

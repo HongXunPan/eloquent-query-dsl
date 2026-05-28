@@ -38,6 +38,7 @@ pre-1.0 阶段推荐使用方优先依赖：
 - `Input\Contract\DslInputParser`
 - `Filter\Contract\DslFilterNormalizer`
 - `Filter\DslFilterValues`
+- `Page\DslPaginationPolicy`
 - `Page\DslPaginationRequest`
 
 ### 2.2 非稳定内部面
@@ -66,7 +67,7 @@ shared 包负责：
 - 查询能力声明对象；
 - search / filter / between / sort 的读取与应用；
 - filter values 与 pagination facts 等中性事实；
-- `DslInputParser / DslInputMap / DslFilterNormalizer` 等扩展契约。
+- `DslInputParser / DslInputMap / DslFilterNormalizer / DslPaginationPolicy` 等扩展契约。
 
 使用侧负责：
 
@@ -81,7 +82,7 @@ shared 包负责：
 - `App\` 命名空间下的业务项目代码；
 - `simple-framework` 专属 adapter；
 - `ApiException`、HTTP status、response envelope；
-- backend `QueryPaginationTrait`；
+- 业务仓 `QueryPaginationTrait`；
 - 旧 DSL compat runtime；
 - 业务资源字段开放清单或权限语义。
 
@@ -169,4 +170,3 @@ composer test
 - [ ] 若改了公开能力，README 已同步
 - [ ] 若改了对外可见行为，CHANGELOG 已同步
 - [ ] 没有把业务项目 adapter / helper / compat runtime 推回 shared core
-

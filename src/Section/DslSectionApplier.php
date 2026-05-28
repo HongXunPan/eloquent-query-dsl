@@ -6,10 +6,12 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 section 应用器契约。
+ * Query DSL section 应用器契约。
  *
  * Kernel 只依赖该契约按顺序编排 section；
  * 具体 section 的输入解析、条件生成与 Builder 应用由各自实现类承担。
+ *
+ * @internal
  */
 interface DslSectionApplier
 {

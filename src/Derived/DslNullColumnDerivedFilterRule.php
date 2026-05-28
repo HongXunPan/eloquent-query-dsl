@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 派生 filter：字段为空规则。
+ * Query DSL 派生 filter：字段为空规则。
  */
 class DslNullColumnDerivedFilterRule implements DslDerivedFilterRule
 {

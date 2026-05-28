@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 默认排序定义。
+ * Query DSL 默认排序定义。
  *
  * 该对象只描述服务端默认排序声明，不承接请求排序条件。
  */

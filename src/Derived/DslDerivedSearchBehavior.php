@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * QueryDSL V2 派生 search 行为。
+ * Query DSL 派生 search 行为。
  *
  * 该对象负责把某个已解析 search 条件翻译成真实 Builder 条件。
  */

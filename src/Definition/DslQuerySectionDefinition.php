@@ -6,7 +6,7 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 
 /**
- * QueryDSL V2 section 能力定义。
+ * Query DSL section 能力定义。
  *
  * 该对象只声明一个 section 可用的字段集合，不固定 section 名称必须是 search / filter / sort。
  */
