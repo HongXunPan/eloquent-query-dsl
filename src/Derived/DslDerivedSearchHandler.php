@@ -5,6 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Derived;
 use Closure;
 use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use ReflectionFunction;
 
 /**
@@ -28,6 +29,9 @@ class DslDerivedSearchHandler implements DslDerivedSearchBehavior
         return new self($handler);
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslSearchCondition $condition): void
     {
         $arguments = [

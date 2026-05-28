@@ -4,6 +4,7 @@ namespace HongXunPan\EloquentQueryDsl\Derived;
 
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 派生 filter：relation 存在规则。
@@ -27,6 +28,9 @@ class DslHasRelationDerivedFilterRule implements DslDerivedFilterRule
         return new self($relation);
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query): void
     {
         $query->whereHas($this->relation);

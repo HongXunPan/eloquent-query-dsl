@@ -6,6 +6,7 @@ use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 关键词搜索处理器。
@@ -45,22 +46,30 @@ class DslKeywordSearchHandler implements DslDerivedSearchBehavior
         return new self(array_values($targetFields));
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslSearchCondition $condition): void
     {
         $value = $condition->mode() === self::SEARCH_MODE_RIGHT_LIKE
             ? $condition->value() . '%'
             : '%' . $condition->value() . '%';
 
-        $query->where(function (Builder $query) use ($value): void {
-            foreach ($this->targetFields as $index => $targetField) {
-                $column = $query->qualifyColumn($targetField->field());
-                if ($index === 0) {
-                    $query->where($column, 'like', $value);
-                    continue;
-                }
+        $query->where(
+            /**
+             * @param Builder<Model> $query
+             */
+            function (Builder $query) use ($value): void {
+                foreach ($this->targetFields as $index => $targetField) {
+                    $column = $query->qualifyColumn($targetField->field());
+                    if ($index === 0) {
+                        $query->where($column, 'like', $value);
+                        continue;
+                    }
 
-                $query->orWhere($column, 'like', $value);
-            }
-        });
+                    $query->orWhere($column, 'like', $value);
+                }
+            },
+        );
     }
 }

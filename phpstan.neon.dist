@@ -7,3 +7,10 @@ parameters:
     excludePaths:
         analyse:
             - vendor
+
+    # Illuminate 10+ exposes Eloquent Builder as a generic type, while Illuminate 9 does not.
+    # Source PHPDoc keeps the generic form for downstream analyzers; this ignore keeps the
+    # package-level Illuminate 9 quality gate compatible.
+    reportUnmatchedIgnoredErrors: false
+    ignoreErrors:
+        - '#PHPDoc tag @param for parameter \$query contains generic type Illuminate\\Database\\Eloquent\\Builder<Illuminate\\Database\\Eloquent\\Model> but class Illuminate\\Database\\Eloquent\\Builder is not generic#'

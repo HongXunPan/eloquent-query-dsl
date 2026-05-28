@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- 补充 derived search / filter 相关 `Builder` 参数泛型 PHPDoc，兼容 Illuminate 10+ 下游 PHPStan 对 `Builder<TModel>` 的检查，同时保留 Illuminate 9 包级分析兼容。
+
 ### Documentation
 
 - README 调整为英文主入口，并新增 `README.zh-CN.md` 中文入口。

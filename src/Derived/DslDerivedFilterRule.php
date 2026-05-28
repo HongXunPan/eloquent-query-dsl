@@ -3,6 +3,7 @@
 namespace HongXunPan\EloquentQueryDsl\Derived;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 派生 filter 单条规则。
@@ -11,5 +12,8 @@ use Illuminate\Database\Eloquent\Builder;
  */
 interface DslDerivedFilterRule
 {
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query): void;
 }

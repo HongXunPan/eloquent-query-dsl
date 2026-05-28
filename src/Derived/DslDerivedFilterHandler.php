@@ -5,6 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Derived;
 use Closure;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 派生 filter 自定义处理器。
@@ -25,6 +26,9 @@ class DslDerivedFilterHandler implements DslDerivedFilterBehavior
         return new self($handler);
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslFilterValue $filterValue): void
     {
         ($this->handler)(
