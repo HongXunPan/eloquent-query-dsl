@@ -1,94 +1,98 @@
 # Eloquent Query DSL
 
-`hongxunpan/eloquent-query-dsl` 是一个面向 Eloquent / Builder 的列表查询 DSL core，用于把列表接口中反复出现的 `search / filter / between / sort / page` 查询协议收口为可声明、可测试、可复用的查询内核。
+[简体中文文档](./README.zh-CN.md)
 
-它不负责 HTTP request、response envelope、业务异常翻译、分页响应结构或业务字段开放清单；这些能力应留在项目 adapter / service 层。
+`hongxunpan/eloquent-query-dsl` is an adapter-friendly Eloquent / Builder query DSL core for list endpoints. It turns recurring list-query concerns—`search`, `filter`, `between`, `sort`, and pagination input—into explicit, testable, reusable query definitions.
 
-## 当前状态
+It does **not** own HTTP requests, response envelopes, business exceptions, pagination responses, authorization, tenant rules, or resource-specific field policies. Those concerns belong in your application adapter or service layer.
 
-当前仓库处于 **pre-1.0 开源预备发布阶段**。
+## Current Status
 
-已完成：
+This repository is in **pre-1.0** development.
 
-- Composer 子包骨架与命名空间 `HongXunPan\EloquentQueryDsl\`；
-- `QueryDsl` / `QueryDslResult` 推荐主入口；
-- `DslQueryDefinition` 查询能力声明模型；
-- 默认输入解析、自定义参数名、flat 输入与完全自定义 parser；
-- `search / filter / between / sort` section 读取与应用；
-- filter normalizer 中性契约与 filter values facts；
-- 字段、实体别名与 relation 名的安全 identifier 校验；
-- 分页事实与分页策略上限；
-- PHPUnit、legacy smoke、PHPStan level 8、PHP-CS-Fixer、Composer audit 与 GitHub Actions 矩阵；
-- 发布检查清单与 `0.1.0` 待发布记录。
+Already in place:
 
-仍需发布前完成：
+- Composer package and namespace `HongXunPan\EloquentQueryDsl\`;
+- recommended entrypoint: `QueryDsl` / `QueryDslResult`;
+- query capability declaration model: `DslQueryDefinition`;
+- default input parser, custom parameter maps, flat input, and fully custom parser contracts;
+- `search / filter / between / sort` readers and builder appliers;
+- neutral filter normalizer contract and filter-value facts;
+- safe identifier validation for fields, entity aliases, and relation names;
+- pagination facts and pagination policy limits;
+- PHPUnit, legacy smoke tests, PHPStan level 8, PHP-CS-Fixer, Composer audit, and GitHub Actions matrix;
+- release checklist and `0.1.0` pre-release changelog section.
 
-- 最终提交与远端 CI 观察；
-- `0.1.0` tag / GitHub Release；
-- Packagist 同步；
-- 业务仓按明确 tag 接入并执行项目侧 smoke。
+Still required before public release:
 
-## 文档入口
+- final commit and remote CI observation;
+- `0.1.0` tag and GitHub Release;
+- Packagist synchronization;
+- application-side integration against a pinned tag and application smoke tests.
+
+## Documentation
 
 - [CHANGELOG](./CHANGELOG.md)
-- [贡献说明](./CONTRIBUTING.md)
-- [安全政策](./SECURITY.md)
-- [公开契约与稳定性承诺](./docs/公开契约与稳定性承诺.zh-CN.md)
-- [查询能力矩阵](./docs/查询能力矩阵.zh-CN.md)
-- [高价值 canonical 示例](./docs/高价值%20canonical%20示例.zh-CN.md)
-- [发布检查清单](./docs/发布检查清单.zh-CN.md)
+- [Contribution Guide](./CONTRIBUTING.md)
+- [Security Policy](./SECURITY.md)
+- [Public Contracts and Stability](./docs/public-contracts.md)
+- [API Reference and Extension Points](./docs/api-reference.md)
+- [Integration Guide](./docs/integration-guide.md)
+- [Query Capability Matrix](./docs/query-capability-matrix.md)
+- [High-value Canonical Examples](./docs/high-value-canonical-examples.md)
+- [Release Checklist (Chinese)](./docs/发布检查清单.zh-CN.md)
 - [MIT License](./LICENSE)
 
-如果你正在评估“是否应该把业务项目里的列表查询能力抽成 shared 包”，请优先阅读本文的选型摘要与边界说明；如果你已经准备接入，请继续阅读 canonical 示例。
+If you are evaluating whether a list-query abstraction belongs in a shared Composer package, start with the selection summary and boundaries below. If you are ready to integrate the package, read the integration guide and canonical examples.
 
-## 选型摘要
+## Selection Summary
 
-这个包不是完整的 API 列表框架，也不是后端响应协议库，而是一个低业务耦合的 Eloquent 查询协议内核。
+This package is not an API framework, a repository layer, or a response-format library. It is a low-business-coupling query protocol core for Eloquent list queries.
 
-优先选择它的典型理由：
+Typical reasons to choose it:
 
-- 你有多个列表接口反复实现关键词搜索、筛选、区间筛选、排序和分页参数解析；
-- 你希望用声明式 definition 管住字段白名单、排序方向、required filter、默认排序等查询能力；
-- 你希望 shared core 只输出中性查询事实，让业务仓继续负责 response、异常、权限和分页执行；
-- 你需要在多个 simple-framework / Eloquent 项目之间复用同一套查询协议和 regression；
-- 你希望 relation 查询、派生筛选、keyword search 等行为被明确测试，而不是散落在 service 里。
+- you repeatedly implement keyword search, field filters, range filters, sorting, and pagination input across list endpoints;
+- you want a declarative definition to own allowed fields, sort directions, required filters, default sorts, and strict mode;
+- you want shared core logic to return neutral query facts while application code keeps responses, exceptions, authorization, and pagination execution;
+- you need one query protocol and regression suite across multiple Eloquent-based projects;
+- you want relation search/filter, derived filters, keyword search, and default sorting semantics to be explicit and testable.
 
-不建议选择它的典型场景：
+Typical reasons not to choose it:
 
-- 你的项目只需要单个临时列表，不存在复用或长期维护成本；
-- 你希望它直接返回 `{ page, list }`、HTTP response 或业务错误码；
-- 你希望把权限、租户隔离、业务默认范围、资源字段清单写进 shared core；
-- 你需要的是 DTO / projection / 展示层重组能力；这应由投影层或业务 presenter 承接。
+- you only have one temporary list endpoint and no reuse or maintenance pressure;
+- you expect the package to return `{ page, list }`, HTTP responses, or business error codes;
+- you want to put authorization, tenant isolation, resource field policies, or business defaults into shared core;
+- you need DTO/projection/presentation restructuring. Use a projection layer or application presenter instead.
 
-## shared 包与使用侧分工
+## Core vs Application Responsibilities
 
-shared 包负责：
+Shared core owns:
 
-- 外部输入解析为 `DslQueryInput / DslPageInput`；
-- 查询能力声明对象；
-- `search / filter / between / sort` 的读取与应用；
-- filter values 与 pagination facts 等中性事实；
-- `DslInputParser / DslInputMap / DslFilterNormalizer / DslPaginationPolicy` 等扩展契约。
+- parsing external input into `DslQueryInput / DslPageInput`;
+- query capability declarations;
+- applying `search / filter / between / sort` to an Eloquent Builder;
+- neutral filter values and pagination facts;
+- extension contracts such as `DslInputParser`, `DslInputMap`, `DslFilterNormalizer`, and `DslPaginationPolicy`.
 
-使用侧负责：
+Application code owns:
 
-- HTTP request 读取；
-- 项目 validator / filter normalizer adapter；
-- 项目异常翻译；
-- `count / paginate / { page, list }` 等响应包装；
-- 权限、租户、业务默认筛选等项目规则；
-- 业务资源字段开放清单。
+- reading HTTP requests;
+- adapting application validation / normalization into `DslFilterNormalizer`;
+- translating exceptions;
+- executing `count`, `paginate`, cursor pagination, export limits, or response wrapping;
+- authorization, tenant isolation, and business default scopes;
+- resource-specific field allowlists.
 
-不要把以下内容直接推入 shared core：
+Do not push the following into shared core:
 
-- `App\` 命名空间下的业务项目代码；
-- `simple-framework` 专属 adapter；
-- `ApiException`、HTTP status、response envelope；
-- 业务仓 `QueryPaginationTrait`；
-- 旧 DSL compat runtime；
-- 业务资源字段开放清单或权限语义。
+- `App\` namespace classes;
+- framework-specific adapters;
+- `ApiException`, HTTP status, or response envelopes;
+- application pagination traits;
+- legacy compatibility runtimes;
+- resource permissions or field policies.
 
-## 30 秒最小示例
+## 30-second Quick Start
 
 ```php
 <?php
@@ -106,7 +110,7 @@ $definition = DslQueryDefinition::make('article')
 $result = QueryDsl::for(Article::query(), $definition)
     ->from([
         'query' => [
-            'search' => ['title' => '校友会'],
+            'search' => ['title' => 'alumni'],
             'filter' => ['status' => 'published'],
             'sort' => ['published_at' => 'desc'],
         ],
@@ -114,47 +118,62 @@ $result = QueryDsl::for(Article::query(), $definition)
     ])
     ->apply();
 
-$query = $result->builder();
+$builder = $result->builder();
 $pagination = $result->pagination();
 $filterValues = $result->filterValues();
 ```
 
-这个示例展示最小默认用法：
+This example shows the smallest default path:
 
-- 使用 `DslQueryDefinition` 声明允许的查询能力；
-- 使用 `QueryDsl::for(...)->from(...)->apply()` 应用查询；
-- 通过 `QueryDslResult` 读取 Builder、分页事实和 filter facts；
-- 使用侧继续决定是否执行 `paginate()`、如何包装 response。
+- declare allowed query behavior through `DslQueryDefinition`;
+- apply input with `QueryDsl::for(...)->from(...)->apply()`;
+- read the Builder and neutral facts from `QueryDslResult`;
+- let application code execute pagination and return responses.
 
-更多完整场景请见：[高价值 canonical 示例](./docs/高价值%20canonical%20示例.zh-CN.md)。
+For richer use cases, see [High-value Canonical Examples](./docs/high-value-canonical-examples.md).
 
-## 公开能力速查
+## Public API Quick Reference
 
-本表只保留入口级判断；完整状态、语义、边界与规划说明请以 [查询能力矩阵](./docs/查询能力矩阵.zh-CN.md) 为准。
+This table is intentionally short. For responsibilities, signatures, extension points, and examples, read [API Reference and Extension Points](./docs/api-reference.md).
 
-| 能力 | 当前状态 | 简短说明 |
+| API | Role |
+| --- | --- |
+| `QueryDsl` | Recommended entrypoint that wires Builder, definition, input, extensions, and returns `QueryDslResult` |
+| `QueryDslResult` | Holds the mutated Builder, parsed filter values, and pagination facts |
+| `DslQueryDefinition` | Declares allowed search, filter, between, sort, relations, defaults, strict mode, and derived behavior |
+| `DslInputMap` | Maps external parameter names to Query DSL sections without changing caller-facing API shape |
+| `DslInputParser` | Full custom input parser contract |
+| `DslFilterNormalizer` | Neutral bridge from application validation / normalization into filter facts |
+| `DslPaginationPolicy` | Controls page / limit / export limit normalization and caps |
+| `DslPaginationRequest` | Neutral pagination facts; it does not execute pagination |
+
+## Capability Quick Reference
+
+For full status, behavior, adapter boundaries, and rejection reasons, read [Query Capability Matrix](./docs/query-capability-matrix.md).
+
+| Capability | Status | Short meaning |
 | --- | --- | --- |
-| `search[field => value]` | ✅ 已支持 | 字段级搜索；多个字段默认 AND；空字符串忽略 |
-| `allowKeywordSearch()` | ✅ 已支持 | 一个 keyword 输入 OR 命中多个主实体字段；relation OR 搜索建议由 derived handler 承接 |
-| `filter[field => value]` | ✅ 已支持 | 单值转 `where`，数组转 `whereIn`，空值忽略，`0` / `false` 视为有效值 |
-| filter normalizer | ✅ 已支持 | 通过 `DslFilterNormalizer` 接入项目 validator / normalize 能力 |
-| derived filter | ✅ 已支持 | 由字段定义绑定派生行为，命中后不再额外生成普通 where |
-| `between[field => [start,end]]` | ✅ 已支持 | 区间筛选；只负责条件应用，不解释业务时间边界 |
-| `sort` | ✅ 已支持 | 支持显式排序、默认排序、派生默认排序与排序方向策略 |
-| relation search/filter | ✅ 已支持 | 通过 relation definition 映射后使用 `whereHas` |
-| relation sort | ⛔ 暂不支持 | 当前明确阻断，避免隐式 join / group 语义不稳定 |
-| pagination facts | ✅ 已支持 | 只输出受策略约束的 page / limit / export_limit 事实，不执行分页 |
-| HTTP response | 🔵 Adapter | 由业务仓承接，不进入 shared core |
-| 业务权限 / 租户隔离 | 🔵 Adapter | 由业务仓在 QueryDsl 前后显式处理 |
+| Field search | Supported | `search[field => value]`; multiple fields are AND; empty strings are ignored |
+| Keyword search | Supported | one input field OR-matches multiple main-entity fields |
+| Filter | Supported | scalar becomes `where`; array becomes `whereIn`; empty values are ignored; `0` / `false` are meaningful |
+| Filter normalizer | Supported | application validation / normalization through `DslFilterNormalizer` |
+| Derived filter/search | Supported | explicit extension hooks for application-specific query behavior |
+| Between | Supported | applies `whereBetween`; business time-boundary policy stays outside core |
+| Sort | Supported | explicit sort, default sort, derived default sort, and direction policies |
+| Relation search/filter | Supported | uses declared relation mapping and relation scopes |
+| Relation sort | Not supported | intentionally blocked to avoid implicit join/group semantics |
+| Pagination facts | Supported | returns normalized facts only; application code executes pagination |
+| HTTP response | Adapter | application responsibility |
+| Authorization / tenancy | Adapter | application responsibility |
 
-## 默认输入协议
+## Default Input Shape
 
-默认输入可以沿用常见的 `query` 包裹结构：
+The default input shape uses a `query` wrapper:
 
 ```php
 $params = [
     'query' => [
-        'search' => ['title' => '校友会'],
+        'search' => ['title' => 'alumni'],
         'filter' => ['status' => 'published'],
         'between' => ['created_at' => ['2026-01-01', '2026-12-31']],
         'sort' => ['published_at' => 'desc'],
@@ -163,51 +182,44 @@ $params = [
 ];
 ```
 
-这只是默认协议，不是 core 限制。若项目已有外部参数名，可用 `DslInputMap` 或自定义 `DslInputParser` 映射，不必把项目 HTTP 协议反向写进 shared core。
+This is the default protocol, not a core limitation. Use `DslInputMap` or `DslInputParser` when your public API already has different parameter names.
 
-## 安装
+## Installation
 
-正式发布到 Packagist 后使用：
+After Packagist release:
 
 ```bash
 composer require hongxunpan/eloquent-query-dsl
 ```
 
-正式 tag 发布前，可通过 Git 仓库或 path repository 做开发期试用；生产项目建议锁定明确 commit / tag，不直接依赖浮动 `dev-main`。
+Before a stable tag, use a VCS repository or path repository for evaluation. Production applications should pin an explicit commit or tag, not floating `dev-main`.
 
-## 验证
+## Verification
 
-在共享 Composer 包容器路径内执行：
+Inside the package directory, run:
 
 ```bash
 composer validate --strict
 composer quality
 ```
 
-`composer quality` 会串联：
+`composer quality` runs:
 
-- `composer test`：PHPUnit + legacy smoke；
-- `composer analyse`：PHPStan level 8；
-- `composer cs:check`：PHP-CS-Fixer dry-run + 轻量仓库卫生检查；
-- `composer security:audit`：Composer 依赖安全审计。
-
-共享测试支撑位于 `tests/Support/`，核心断言口径为：
-
-1. 输入条件；
-2. 生效 SQL；
-3. bindings；
-4. SQLite in-memory 实际结果集。
+- `composer test`: PHPUnit + legacy smoke tests;
+- `composer analyse`: PHPStan level 8;
+- `composer cs:check`: PHP-CS-Fixer dry-run + lightweight repository hygiene checks;
+- `composer security:audit`: Composer dependency audit.
 
 ## CI
 
-本仓提供 GitHub Actions 工作流：`.github/workflows/ci.yml`。
+The repository provides GitHub Actions workflow at `.github/workflows/ci.yml`.
 
-当前矩阵：
+Current matrix:
 
-- PHP 8.0 + illuminate/database 9；
-- PHP 8.1 + illuminate/database 10；
-- PHP 8.2 + illuminate/database 11；
-- PHP 8.3 + illuminate/database 12；
-- Static analysis / PHPStan level 8。
+- PHP 8.0 + illuminate/database 9;
+- PHP 8.1 + illuminate/database 10;
+- PHP 8.2 + illuminate/database 11;
+- PHP 8.3 + illuminate/database 12;
+- static analysis with PHPStan level 8.
 
-准备 tag / GitHub Release / Packagist 发布前，必须先按 [发布检查清单](./docs/发布检查清单.zh-CN.md) 执行。
+Before tagging or publishing, follow the [Release Checklist](./docs/发布检查清单.zh-CN.md).

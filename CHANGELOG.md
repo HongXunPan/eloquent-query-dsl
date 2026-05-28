@@ -8,7 +8,17 @@
 
 ## [Unreleased]
 
-当前暂无未发布变更。
+### Documentation
+
+- README 调整为英文主入口，并新增 `README.zh-CN.md` 中文入口。
+- 新增双语核心文档：
+  - `docs/api-reference.md` / `docs/API能力与扩展点.zh-CN.md`；
+  - `docs/integration-guide.md` / `docs/接入指南.zh-CN.md`；
+  - `docs/public-contracts.md` / `docs/公开契约与稳定性承诺.zh-CN.md`；
+  - `docs/query-capability-matrix.md` / `docs/查询能力矩阵.zh-CN.md`；
+  - `docs/high-value-canonical-examples.md` / `docs/高价值 canonical 示例.zh-CN.md`。
+- 明确开源使用视角下的 API 能力、扩展点、接入步骤和 adapter 边界，避免依赖业务项目约定俗成。
+- CONTRIBUTING 与发布检查清单增加双语文档同步要求。
 
 ## [0.1.0] - 待发布
 

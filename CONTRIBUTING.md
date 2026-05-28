@@ -10,19 +10,24 @@
 
 建议按下面顺序建立上下文：
 
-1. `README.md`
-2. `CHANGELOG.md`
-3. `docs/发布检查清单.zh-CN.md`
-4. `composer.json`
-5. `src/QueryDsl.php`
-6. `src/QueryDslResult.php`
-7. `src/Definition/DslQueryDefinition.php`
-8. `src/Input/DslInputMap.php`
-9. `src/Input/Contract/DslInputParser.php`
-10. `src/Filter/Contract/DslFilterNormalizer.php`
-11. `tests/`
+1. `README.md` / `README.zh-CN.md`
+2. `docs/api-reference.md` / `docs/API能力与扩展点.zh-CN.md`
+3. `docs/integration-guide.md` / `docs/接入指南.zh-CN.md`
+4. `docs/public-contracts.md` / `docs/公开契约与稳定性承诺.zh-CN.md`
+5. `docs/query-capability-matrix.md` / `docs/查询能力矩阵.zh-CN.md`
+6. `docs/high-value-canonical-examples.md` / `docs/高价值 canonical 示例.zh-CN.md`
+7. `CHANGELOG.md`
+8. `docs/发布检查清单.zh-CN.md`
+9. `composer.json`
+10. `src/QueryDsl.php`
+11. `src/QueryDslResult.php`
+12. `src/Definition/DslQueryDefinition.php`
+13. `src/Input/DslInputMap.php`
+14. `src/Input/Contract/DslInputParser.php`
+15. `src/Filter/Contract/DslFilterNormalizer.php`
+16. `tests/`
 
-如果改动涉及 public / internal 边界，请先确认 README 中的 Public API 承诺是否需要同步更新。
+如果改动涉及 public / internal 边界，请先确认 README、API Reference 与 Public Contracts 是否需要同步更新。公开文档默认需要维护中英文版本，避免英文 README 与中文说明出现能力差异。
 
 ---
 
@@ -139,12 +144,13 @@ composer analyse
 
 ## 5. 改动同步要求
 
-### 5.1 必须同步 README 的场景
+### 5.1 必须同步 README / docs 的场景
 
-- 新增推荐公开入口；
-- 修改推荐接入方式；
-- 修改 shared 包与使用侧分工；
-- 改变输入协议或扩展契约。
+- 新增推荐公开入口：同步 `README.md`、`README.zh-CN.md`、API Reference 与 Public Contracts；
+- 修改推荐接入方式：同步 Integration Guide 与 canonical examples；
+- 修改 shared 包与使用侧分工：同步 README、Public Contracts 与 Release Checklist；
+- 改变输入协议或扩展契约：同步 API Reference、Integration Guide、Capability Matrix 与测试；
+- 新增查询能力或调整能力状态：同步 Capability Matrix 的中英文版本。
 
 ### 5.2 必须同步 CHANGELOG 的场景
 
@@ -188,6 +194,6 @@ composer analyse
 - [ ] `composer cs:check` 通过
 - [ ] `composer security:audit` 通过
 - [ ] 没有把 `vendor/`、`.idea/`、本地缓存带进仓库
-- [ ] 若改了公开能力，README 已同步
+- [ ] 若改了公开能力，README 与核心 docs 中英文版本已同步
 - [ ] 若改了对外可见行为，CHANGELOG 已同步
 - [ ] 没有把业务项目 adapter / helper / compat runtime 推回 shared core
