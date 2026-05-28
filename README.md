@@ -27,7 +27,143 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包仍处于 **skeleton 阶段**：已建立 Composer 包骨架、命名空间、边界说明、最小测试入口、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象和包级 core regression；后续仍需业务仓反接。
+当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象和包级 core regression；下一步会补齐更适合开源使用方的主入口与输入协议扩展。
+
+## 推荐接入方式（下一批 public API 草案）
+
+> 注意：本节是下一批即将落地的推荐 public API 草案，用于先固定开源使用方视角；当前已可用能力仍以底层 core 对象、section applier 与 `QueryDslV2Kernel` 为主。
+
+默认场景下，使用方不应手动理解和组装 section applier / kernel / context，而是通过一个直观主入口完成查询应用：
+
+```php
+use HongXunPan\EloquentQueryDsl\QueryDsl;
+
+$result = QueryDsl::for($builder, $definition)
+    ->from($params)
+    ->filterNormalizer($normalizer)
+    ->apply();
+
+$query = $result->builder();
+$filterValues = $result->filterValues();
+$pagination = $result->pagination();
+```
+
+其中：
+
+- `$builder` 是 Eloquent `Builder`；
+- `$definition` 是 `DslQueryDefinition`，只声明允许哪些字段和查询能力；
+- `$params` 是外部输入，可以来自 HTTP request、CLI 参数或业务自定义数组；
+- `$normalizer` 是 `DslFilterNormalizer`，用于接入项目自己的 filter 值归一化或校验能力；
+- `$result` 是 `QueryDslResult`，只返回中性的查询事实，不负责 HTTP response、分页响应结构或业务异常翻译。
+
+### 默认输入协议
+
+默认输入可以沿用常见的 `query` 包裹结构：
+
+```php
+$params = [
+    'query' => [
+        'search' => ['title' => '校友会'],
+        'filter' => ['status' => 'published'],
+        'between' => ['created_at' => ['2026-01-01', '2026-12-31']],
+        'sort' => ['published_at' => 'desc'],
+    ],
+    'page' => ['page' => 1, 'limit' => 20],
+];
+```
+
+这只是默认协议，不是 core 限制。`query.filter` 不会被固化成唯一入口。
+
+### 自定义参数名
+
+如果你的项目参数不叫 `filter`，或者分页参数不是 `page.limit`，可以通过 `DslInputMap` 描述外部参数名：
+
+```php
+use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
+
+$inputMap = DslInputMap::make()
+    ->filter('where')
+    ->sort('order_by')
+    ->page('page')
+    ->limit('per_page')
+    ->arrayInput();
+
+$result = QueryDsl::for($builder, $definition)
+    ->from($params)
+    ->inputMap($inputMap)
+    ->filterNormalizer($normalizer)
+    ->apply();
+```
+
+对应输入可以是：
+
+```php
+$params = [
+    'where' => ['status' => 'published'],
+    'order_by' => ['published_at' => 'desc'],
+    'page' => 1,
+    'per_page' => 20,
+];
+```
+
+### flat 输入
+
+对于更扁平的接口，也可以把筛选前缀映射为 filter：
+
+```php
+$inputMap = DslInputMap::make()
+    ->flatInput()
+    ->search('keyword')
+    ->filterPrefix('where_')
+    ->sort('sort')
+    ->page('page')
+    ->limit('per_page');
+```
+
+例如：
+
+```php
+$params = [
+    'keyword' => '校友会',
+    'where_status' => 'published',
+    'sort' => '-published_at',
+    'page' => 1,
+    'per_page' => 20,
+];
+```
+
+### 完全自定义解析
+
+如果项目已有自己的请求协议，可以实现 `DslInputParser`，把任意外部输入转换为包内标准输入：
+
+```php
+use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
+
+$result = QueryDsl::for($builder, $definition)
+    ->from($params)
+    ->inputParser($parser)
+    ->filterNormalizer($normalizer)
+    ->apply();
+```
+
+`DslInputParser` 只负责输入解析，不负责字段白名单、filter 归一化、查询执行或响应结构。
+
+### shared 包与使用侧分工
+
+shared 包负责：
+
+- 输入协议解析为标准 `DslQueryInput / DslPageInput`；
+- search / filter / between / sort 的主流程编排；
+- `DslFilterValues` 与 `DslPaginationRequest` 等中性事实；
+- `DslInputParser`、`DslInputMap`、`DslFilterNormalizer` 等扩展契约。
+
+使用侧负责：
+
+- HTTP request 读取；
+- 项目 validator 或 filter normalizer 适配；
+- 项目异常翻译；
+- `{ page, list }` 等响应结构；
+- 权限、租户、业务默认筛选等项目规则。
 
 ## 定位
 
@@ -65,7 +201,7 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
 
-后续批次进入 core 平移时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把 backend 的 `QueryDslFilterValidator / QueryDslNormalizedFilterSet` 反向带入共享包。
+后续批次进入 public API 实现时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 `QueryDslFilterValidator`、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
 
 ## 命名空间
 
