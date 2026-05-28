@@ -6,6 +6,7 @@ use HongXunPan\EloquentQueryDsl\Condition\DslCondition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 字段条件作用域应用器。
@@ -18,6 +19,7 @@ use Illuminate\Database\Eloquent\Builder;
 class DslFieldConditionScopeApplier
 {
     /**
+     * @param Builder<Model> $query
      * @param DslCondition[] $conditions
      */
     public function apply(Builder $query, DslQueryDefinition $definition, array $conditions, callable $apply): void
@@ -46,11 +48,17 @@ class DslFieldConditionScopeApplier
                 );
             }
 
-            $query->whereHas($relation->relation(), function (Builder $query) use ($conditionsInRelation, $apply): void {
-                foreach ($conditionsInRelation as $condition) {
-                    $apply($query, $condition);
-                }
-            });
+            $query->whereHas(
+                $relation->relation(),
+                /**
+                 * @param Builder<Model> $query
+                 */
+                function (Builder $query) use ($conditionsInRelation, $apply): void {
+                    foreach ($conditionsInRelation as $condition) {
+                        $apply($query, $condition);
+                    }
+                },
+            );
         }
     }
 }

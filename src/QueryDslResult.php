@@ -6,6 +6,7 @@ use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * QueryDSL 一次应用后的中性结果。
@@ -15,12 +16,18 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class QueryDslResult
 {
+    /**
+     * @param Builder<Model> $builder
+     */
     public function __construct(
         private Builder $builder,
         private DslQueryRequestContext $context,
     ) {
     }
 
+    /**
+     * @return Builder<Model>
+     */
     public function builder(): Builder
     {
         return $this->builder;

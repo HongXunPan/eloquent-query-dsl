@@ -12,6 +12,7 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Reader\DslFieldMapReader;
 use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL search section 应用器。
@@ -38,6 +39,9 @@ class DslSearchSectionApplier implements DslSectionApplier
         $this->scopeApplier = $scopeApplier ?? new DslFieldConditionScopeApplier();
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
         $definition = $context->definition();
@@ -45,21 +49,29 @@ class DslSearchSectionApplier implements DslSectionApplier
         $conditions = $this->conditions($definition, $input);
         $searchSection = $definition->getSection(self::SECTION);
 
-        $this->scopeApplier->apply($query, $definition, $conditions, function (Builder $query, DslSearchCondition $condition) use ($searchSection): void {
-            $derivedBehavior = $searchSection?->field($condition->canonicalField())?->derivedSearchBehavior();
-            if ($derivedBehavior !== null) {
-                $derivedBehavior->apply($query, $condition);
-                return;
-            }
+        $this->scopeApplier->apply(
+            $query,
+            $definition,
+            $conditions,
+            /**
+             * @param Builder<Model> $query
+             */
+            function (Builder $query, DslSearchCondition $condition) use ($searchSection): void {
+                $derivedBehavior = $searchSection?->field($condition->canonicalField())?->derivedSearchBehavior();
+                if ($derivedBehavior !== null) {
+                    $derivedBehavior->apply($query, $condition);
+                    return;
+                }
 
-            $column = $query->qualifyColumn($condition->fieldPath()->field());
-            if ($condition->mode() === self::SEARCH_MODE_RIGHT_LIKE) {
-                $query->where($column, 'like', $condition->value() . '%');
-                return;
-            }
+                $column = $query->qualifyColumn($condition->fieldPath()->field());
+                if ($condition->mode() === self::SEARCH_MODE_RIGHT_LIKE) {
+                    $query->where($column, 'like', $condition->value() . '%');
+                    return;
+                }
 
-            $query->where($column, 'like', '%' . $condition->value() . '%');
-        });
+                $query->where($column, 'like', '%' . $condition->value() . '%');
+            },
+        );
     }
 
     /**

@@ -15,6 +15,7 @@ use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSearchSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSortSectionApplier;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * QueryDSL 推荐主入口。
@@ -33,12 +34,18 @@ class QueryDsl
     private ?DslFilterNormalizer $filterNormalizer = null;
     private ?DslPaginationPolicy $paginationPolicy = null;
 
+    /**
+     * @param Builder<Model> $builder
+     */
     private function __construct(
         private Builder $builder,
         private DslQueryDefinition $definition,
     ) {
     }
 
+    /**
+     * @param Builder<Model> $builder
+     */
     public static function for(Builder $builder, DslQueryDefinition $definition): self
     {
         return new self($builder, $definition);

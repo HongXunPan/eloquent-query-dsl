@@ -12,6 +12,7 @@ use HongXunPan\EloquentQueryDsl\Section\DslSearchSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSectionApplier;
 use HongXunPan\EloquentQueryDsl\Section\DslSortSectionApplier;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL 内核入口。
@@ -51,6 +52,9 @@ class QueryDslKernel
 
     /**
      * 将查询输入按 Definition 应用到 Builder。
+     *
+     * @param Builder<Model> $query
+     * @return Builder<Model>
      */
     public function apply(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): Builder
     {
@@ -62,6 +66,9 @@ class QueryDslKernel
 
     /**
      * 将请求上下文应用到 Builder。
+     *
+     * @param Builder<Model> $query
+     * @return Builder<Model>
      */
     public function applyContext(Builder $query, DslQueryRequestContext $context): Builder
     {

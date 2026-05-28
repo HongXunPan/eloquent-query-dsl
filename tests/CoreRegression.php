@@ -178,10 +178,16 @@ final class QueryDslCoreRegression
             ->strict(true)
             ->allowSearch(['title', 'code', 'display_code'])
             ->searchRightLike(['code', 'display_code'])
-            ->allowDerivedSearch('display_code', function (Builder $query, string $value, string $mode): void {
-                $pattern = $mode === 'right_like' ? $value . '%' : '%' . $value . '%';
-                $query->whereRaw("code || '-' || id LIKE ?", [$pattern]);
-            });
+            ->allowDerivedSearch(
+                'display_code',
+                /**
+                 * @param Builder<QueryDslCoreRegressionArticle> $query
+                 */
+                function (Builder $query, string $value, string $mode): void {
+                    $pattern = $mode === 'right_like' ? $value . '%' : '%' . $value . '%';
+                    $query->whereRaw("code || '-' || id LIKE ?", [$pattern]);
+                },
+            );
 
         $fullLikeQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
             'search' => ['title' => 'Hello'],
@@ -482,11 +488,17 @@ final class QueryDslCoreRegression
         Assert::notContains('order by', $this->normalizeSql($looseInvalidSortQuery), 'strict(false) 下非法排序方向应被忽略');
     }
 
+    /**
+     * @return Builder<QueryDslCoreRegressionArticle>
+     */
     private function newArticleQuery(): Builder
     {
         return QueryDslCoreRegressionArticle::query();
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     private function normalizeSql(Builder $query): string
     {
         $sql = strtolower($query->toSql());
@@ -500,6 +512,9 @@ final class QueryDslCoreRegressionArticle extends Model
     public $timestamps = false;
     protected $guarded = [];
 
+    /**
+     * @return HasMany<QueryDslCoreRegressionComment, QueryDslCoreRegressionArticle>
+     */
     public function comments(): HasMany
     {
         return $this->hasMany(QueryDslCoreRegressionComment::class, 'article_id');

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace HongXunPan\EloquentQueryDsl\Tests\Support;
 
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use RuntimeException;
 use Throwable;
 
@@ -61,6 +62,7 @@ final class Assert
     }
 
     /**
+     * @param Builder<Model> $query
      * @param array<int, int> $expectedIds
      */
     public static function resultIds(Builder $query, array $expectedIds, string $message): void

@@ -108,12 +108,16 @@ final class SearchFilterSortSemanticsTest extends TestCase
         $this->assertStringContainsString('order by "id" desc', $this->normalizeSql($explicitQuery));
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     private function normalizeSql(Builder $query): string
     {
         return (string)preg_replace('/\s+/', ' ', strtolower($query->toSql()));
     }
 
     /**
+     * @param Builder<Model> $query
      * @return int[]
      */
     private function resultIds(Builder $query): array

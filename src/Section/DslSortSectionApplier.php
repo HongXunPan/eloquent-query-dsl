@@ -14,6 +14,7 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Reader\DslItemListReader;
 use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL sort section 应用器。
@@ -44,6 +45,9 @@ class DslSortSectionApplier implements DslSectionApplier
         $this->filterSectionApplier = $filterSectionApplier ?? new DslFilterSectionApplier();
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
         if (!$this->applyExplicitSortFromContext($query, $context)) {
@@ -51,6 +55,9 @@ class DslSortSectionApplier implements DslSectionApplier
         }
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     protected function applyExplicitSort(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): bool
     {
         return $this->applyExplicitSortFromContext(
@@ -59,6 +66,9 @@ class DslSortSectionApplier implements DslSectionApplier
         );
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     protected function applyExplicitSortFromContext(Builder $query, DslQueryRequestContext $context): bool
     {
         $definition = $context->definition();
@@ -77,6 +87,9 @@ class DslSortSectionApplier implements DslSectionApplier
         return $applied;
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function applyDefaultSort(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): void
     {
         $this->applyDefaultSortFromContext(
@@ -85,6 +98,9 @@ class DslSortSectionApplier implements DslSectionApplier
         );
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     protected function applyDefaultSortFromContext(Builder $query, DslQueryRequestContext $context): void
     {
         $definition = $context->definition();
@@ -155,6 +171,7 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
+     * @param Builder<Model> $query
      * @param DslQueryDefaultSort[] $sorts
      */
     protected function applySorts(Builder $query, array $sorts): void

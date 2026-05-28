@@ -11,6 +11,7 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Reader\DslFieldMapReader;
 use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL between section 应用器。
@@ -35,17 +36,28 @@ class DslBetweenSectionApplier implements DslSectionApplier
         $this->scopeApplier = $scopeApplier ?? new DslFieldConditionScopeApplier();
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
         $definition = $context->definition();
         $input = $context->queryInput();
         $conditions = $this->conditions($definition, $input);
-        $this->scopeApplier->apply($query, $definition, $conditions, function (Builder $query, DslBetweenCondition $condition): void {
-            $query->whereBetween(
-                $query->qualifyColumn($condition->fieldPath()->field()),
-                $condition->values(),
-            );
-        });
+        $this->scopeApplier->apply(
+            $query,
+            $definition,
+            $conditions,
+            /**
+             * @param Builder<Model> $query
+             */
+            function (Builder $query, DslBetweenCondition $condition): void {
+                $query->whereBetween(
+                    $query->qualifyColumn($condition->fieldPath()->field()),
+                    $condition->values(),
+                );
+            },
+        );
     }
 
     /**

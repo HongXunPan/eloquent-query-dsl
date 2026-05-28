@@ -10,7 +10,8 @@
 
 ### Fixed
 
-- 补充 derived search / filter 相关 `Builder` 参数泛型 PHPDoc，兼容 Illuminate 10+ 下游 PHPStan 对 `Builder<TModel>` 的检查，同时保留 Illuminate 9 包级分析兼容。
+- 补齐 Query DSL Builder / relation 传递链路的泛型 PHPDoc，覆盖入口、结果对象、Kernel、Apply、Section、Derived 与测试辅助方法，修复 Illuminate 10+ / 11+ / 12+ 下游 PHPStan 对 `Builder<TModel>` / relation 泛型的检查报错。
+- 包级 PHPStan 配置保留 Illuminate 9 兼容忽略，避免旧版 Illuminate 未声明泛型时反向失败。
 
 ### Documentation
 

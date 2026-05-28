@@ -4,6 +4,7 @@ namespace HongXunPan\EloquentQueryDsl\Section;
 
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL section 应用器契约。
@@ -17,6 +18,8 @@ interface DslSectionApplier
 {
     /**
      * 将当前 section 能力应用到 Builder。
+     *
+     * @param Builder<Model> $query
      */
     public function apply(Builder $query, DslQueryRequestContext $context): void;
 }

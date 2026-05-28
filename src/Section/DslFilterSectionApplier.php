@@ -19,6 +19,7 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Reader\DslFieldMapReader;
 use HongXunPan\EloquentQueryDsl\Reader\DslSectionReader;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 
 /**
  * Query DSL filter section 应用器。
@@ -46,6 +47,9 @@ class DslFilterSectionApplier implements DslSectionApplier
         $this->filterNormalizer = $filterNormalizer;
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
         $definition = $context->definition();
@@ -53,20 +57,28 @@ class DslFilterSectionApplier implements DslSectionApplier
         $this->applyDerivedFilterValues($query, $filterValues);
 
         $conditions = $this->conditionsFromFilterValues($filterValues);
-        $this->scopeApplier->apply($query, $definition, $conditions, function (Builder $query, DslFilterCondition $condition): void {
-            $column = $query->qualifyColumn($condition->fieldPath()->field());
-            $value = $condition->value();
-            if (is_array($value)) {
-                if ($value === []) {
+        $this->scopeApplier->apply(
+            $query,
+            $definition,
+            $conditions,
+            /**
+             * @param Builder<Model> $query
+             */
+            function (Builder $query, DslFilterCondition $condition): void {
+                $column = $query->qualifyColumn($condition->fieldPath()->field());
+                $value = $condition->value();
+                if (is_array($value)) {
+                    if ($value === []) {
+                        return;
+                    }
+
+                    $query->whereIn($column, $value);
                     return;
                 }
 
-                $query->whereIn($column, $value);
-                return;
-            }
-
-            $query->where($column, $value);
-        });
+                $query->where($column, $value);
+            },
+        );
     }
 
     /**
@@ -189,6 +201,9 @@ class DslFilterSectionApplier implements DslSectionApplier
         return DslNormalizedFilterSet::success($payload, $items);
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     protected function applyDerivedFilterValues(Builder $query, DslFilterValues $filterValues): void
     {
         foreach ($filterValues->all() as $filterValue) {

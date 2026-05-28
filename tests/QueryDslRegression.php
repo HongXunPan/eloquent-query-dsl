@@ -102,6 +102,9 @@ final class QueryDslEntryRegression
         Assert::same(5, $result->pagination()->limit(), '自定义 parser limit 应生效');
     }
 
+    /**
+     * @param Builder<Model> $query
+     */
     private function normalizeSql(Builder $query): string
     {
         $sql = strtolower($query->toSql());
