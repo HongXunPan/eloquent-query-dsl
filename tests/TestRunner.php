@@ -51,6 +51,7 @@ $filterCondition = DslFilterCondition::fromField($fieldPath, 'published');
 $sortCondition = DslSortCondition::make($fieldPath, 'DESC');
 $definition = DslQueryDefinition::make('activity')
     ->allowSearch(['title'])
+    ->allowKeywordSearch('keyword', ['title', 'summary'])
     ->allowFilter(['status' => 'string'])
     ->allowSort(['updated_at'])
     ->defaultSort('updated_at', 'DESC')
@@ -105,6 +106,7 @@ $assertions = [
     'filter condition 保留 section 与值' => $filterCondition->sectionName() === 'filter' && $filterCondition->value() === 'published',
     'sort condition 归一化排序方向' => $sortCondition->order() === DslSortCondition::ORDER_DESC,
     'definition 可声明查询能力' => $definition->isStrict() && $definition->getSection('search')?->hasField('activity.title'),
+    'definition 可声明关键词搜索能力' => $definition->getSection('search')?->hasField('activity.keyword'),
     'definition 可声明默认排序' => $definition->defaultSorts()[0]->fieldPath()->canonical() === 'activity.updated_at',
     'filter value 集合可按短字段读取' => $filterValues->singleValue('status') === 'published',
     'query input 可解析 section' => $queryInput->has('filter') && $queryInput->get('filter')?->isArray(),

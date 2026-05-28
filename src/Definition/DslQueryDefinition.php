@@ -4,6 +4,7 @@ namespace HongXunPan\EloquentQueryDsl\Definition;
 
 use HongXunPan\EloquentQueryDsl\Derived\DslDerivedDefaultSortStrategy;
 use HongXunPan\EloquentQueryDsl\Derived\DslDerivedFilterRuleMap;
+use HongXunPan\EloquentQueryDsl\Derived\DslKeywordSearchHandler;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use HongXunPan\EloquentQueryDsl\Field\DslIdentifier;
@@ -139,6 +140,22 @@ class DslQueryDefinition
     {
         $this->declaredField('search', $field)
             ->withDerivedSearchHandler($handler);
+
+        return $this;
+    }
+
+    public function allowKeywordSearch(string $field, array $targetFields, string $mode = ''): self
+    {
+        $fieldDefinition = $this->field('search', $field);
+        $fieldDefinition->withDerivedSearchBehavior(
+            DslKeywordSearchHandler::forFields(
+                $this->keywordSearchTargetFieldPaths($targetFields)
+            )
+        );
+
+        if (trim($mode) !== '') {
+            $fieldDefinition->withSearchMode($mode);
+        }
 
         return $this;
     }
@@ -314,6 +331,19 @@ class DslQueryDefinition
         }
 
         return $normalized;
+    }
+
+    /**
+     * @return DslFieldPath[]
+     */
+    protected function keywordSearchTargetFieldPaths(array $fields): array
+    {
+        $fieldPaths = [];
+        foreach ($this->normalizeFieldList($fields, 'allowKeywordSearch') as $field) {
+            $fieldPaths[] = DslFieldPath::fromDefinition($field, $this->mainEntity);
+        }
+
+        return $fieldPaths;
     }
 
 }

@@ -156,6 +156,65 @@ $result = QueryDsl::for($builder, $definition)
 
 `DslInputParser` 只负责输入解析，不负责字段白名单、filter 归一化、查询执行或响应结构。
 
+### search 语义
+
+`search` 默认是字段级搜索：每个字段各自生成一个 `LIKE` 条件，多个字段之间使用 **AND** 语义。
+
+```php
+$definition = DslQueryDefinition::make('article')
+    ->allowSearch(['title', 'code'])
+    ->searchRightLike(['code']);
+
+$params = [
+    'query' => [
+        'search' => [
+            'title' => 'Hello',
+            'code' => 'AB001',
+        ],
+    ],
+];
+```
+
+上面的输入会表达为：`title LIKE '%Hello%' AND code LIKE 'AB001%'`。
+
+如果需要一个关键词同时命中多个主实体字段，可以使用 `allowKeywordSearch()`，它会在目标字段之间使用 **OR** 分组：
+
+```php
+$definition = DslQueryDefinition::make('article')
+    ->allowKeywordSearch('keyword', ['title', 'summary', 'code']);
+
+$params = [
+    'query' => [
+        'search' => ['keyword' => '校友会'],
+    ],
+];
+```
+
+`allowKeywordSearch()` 当前只支持主实体字段；关联字段搜索仍应通过字段级 relation search 或使用侧 derived handler 显式承接。
+
+### filter 语义
+
+`filter` 默认按字段生成精确匹配：
+
+- 单值生成 `where(field, value)`；
+- 多值数组生成 `whereIn(field, values)`；
+- 空字符串、空数组、`null`、`false` 会被视为空值并忽略；
+- 字符串 `'0'` 与数值 `0` 会被视为有效值；
+- 带规则的 filter 只通过 `DslFilterNormalizer` 归一化，本包不内置业务 validator。
+
+派生 filter 命中后只执行派生行为，不再额外生成普通 `where`。
+
+### sort 语义
+
+`sort` 当前语义：
+
+- 显式 sort 优先于 default sort；
+- derived default sort 优先于普通 default sort；
+- 多字段 sort 保持输入顺序；
+- 可用 `sortAscOnly()` / `sortDescOnly()` 限制排序方向；
+- 关联字段 sort 当前不支持，建议使用侧显式 join / projection 后再决定是否开放；
+- `strict(false)` 下非法 sort item 会被忽略，`strict(true)` 下会抛出输入异常。
+
 ### 分页事实策略
 
 本包不会执行 `count / paginate / forPage`，但会把分页输入解析为中性的 `DslPaginationRequest`。为避免使用侧误用超大分页参数，默认分页策略会限制：

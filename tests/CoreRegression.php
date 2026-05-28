@@ -203,6 +203,49 @@ final class QueryDslCoreRegression
         Assert::same(['AC%'], $derivedSearchQuery->getBindings(), 'derived search 应按 right_like 绑定值');
         Assert::resultIds($derivedSearchQuery, [3], 'derived search 生效结果集应匹配输入条件');
 
+        $andSearchQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+            'search' => ['title' => 'Hello', 'code' => 'AB001'],
+        ]));
+        Assert::contains('title" like ?', $this->normalizeSql($andSearchQuery), '多字段 search 应写入第一个字段条件');
+        Assert::contains('code" like ?', $this->normalizeSql($andSearchQuery), '多字段 search 应写入第二个字段条件');
+        Assert::same(['%Hello%', 'AB001%'], $andSearchQuery->getBindings(), '多字段 search 绑定值应按字段声明模式处理');
+        Assert::resultIds($andSearchQuery, [1], '多字段 search 默认应为 AND 语义');
+
+        $emptySearchQuery = $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+            'search' => ['title' => '   '],
+        ]));
+        Assert::notContains('where', $this->normalizeSql($emptySearchQuery), '空 search 字符串应被忽略');
+
+        $keywordDefinition = DslQueryDefinition::make('article')
+            ->strict(true)
+            ->allowKeywordSearch('keyword', ['title', 'code']);
+        $keywordTitleQuery = $this->kernel->apply($this->newArticleQuery(), $keywordDefinition, DslQueryInput::fromRaw([
+            'search' => ['keyword' => 'Guide'],
+        ]));
+        Assert::contains('or', $this->normalizeSql($keywordTitleQuery), 'keyword search 应使用 OR 分组');
+        Assert::same(['%Guide%', '%Guide%'], $keywordTitleQuery->getBindings(), 'keyword search 应对所有目标字段使用同一关键词');
+        Assert::resultIds($keywordTitleQuery, [3], 'keyword search 应命中 title');
+
+        $keywordCodeQuery = $this->kernel->apply($this->newArticleQuery(), $keywordDefinition, DslQueryInput::fromRaw([
+            'search' => ['keyword' => 'AB001'],
+        ]));
+        Assert::resultIds($keywordCodeQuery, [1], 'keyword search 应命中 code');
+
+        $keywordRightLikeDefinition = DslQueryDefinition::make('article')
+            ->strict(true)
+            ->allowKeywordSearch('keyword', ['code'], 'right_like');
+        $keywordRightLikeQuery = $this->kernel->apply($this->newArticleQuery(), $keywordRightLikeDefinition, DslQueryInput::fromRaw([
+            'search' => ['keyword' => 'AB'],
+        ]));
+        Assert::same(['AB%'], $keywordRightLikeQuery->getBindings(), 'keyword search 应支持 right_like 模式');
+        Assert::resultIds($keywordRightLikeQuery, [1, 2], 'right_like keyword search 生效结果集应匹配输入条件');
+
+        Assert::throws(
+            fn() => DslQueryDefinition::make('article')->allowKeywordSearch('keyword', ['comments.body']),
+            DslQueryDslDefinitionException::class,
+            '关键词搜索当前仅支持主实体字段'
+        );
+
         Assert::throws(
             fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])),
             DslQueryDslException::class,
@@ -226,6 +269,26 @@ final class QueryDslCoreRegression
         Assert::contains('id" in (?, ?)', $this->normalizeSql($whereInQuery), '多值 filter 应生成 whereIn');
         Assert::same([1, 2], $whereInQuery->getBindings(), 'whereIn 绑定值应保持数组值');
         Assert::resultIds($whereInQuery, [1, 2], 'whereIn 生效结果集应匹配输入条件');
+
+        $zeroFilterValues = $this->filterSectionApplier->filterValues($whereInDefinition, DslQueryInput::fromRaw([
+            'filter' => ['id' => 0],
+        ]));
+        Assert::same(0, $zeroFilterValues->singleValue('id'), 'filter 数值 0 应视为有效值');
+
+        $mixedWhereInQuery = $this->kernel->apply($this->newArticleQuery(), $whereInDefinition, DslQueryInput::fromRaw([
+            'filter' => ['id' => [1, '', null, 0]],
+        ]));
+        Assert::same([1, 0], $mixedWhereInQuery->getBindings(), '数组 filter 应过滤空值但保留 0');
+
+        $emptyFilterQuery = $this->kernel->apply($this->newArticleQuery(), $whereInDefinition, DslQueryInput::fromRaw([
+            'filter' => ['id' => []],
+        ]));
+        Assert::notContains('where', $this->normalizeSql($emptyFilterQuery), '空数组 filter 应被忽略');
+
+        $falseFilterQuery = $this->kernel->apply($this->newArticleQuery(), $whereInDefinition, DslQueryInput::fromRaw([
+            'filter' => ['id' => false],
+        ]));
+        Assert::notContains('where', $this->normalizeSql($falseFilterQuery), 'false filter 当前应被视为空值并忽略');
 
         $defaultRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status' => 'default:draft']);
         $defaultRuleValues = $this->filterSectionApplier->filterValues($defaultRuleDefinition, DslQueryInput::empty());
@@ -367,6 +430,15 @@ final class QueryDslCoreRegression
             '该字段不支持当前排序方向'
         );
 
+        $descOnlyDefinition = DslQueryDefinition::make('article')->strict(true)->allowSort(['sort_order'])->sortDescOnly(['sort_order']);
+        Assert::throws(
+            fn() => $this->kernel->apply($this->newArticleQuery(), $descOnlyDefinition, DslQueryInput::fromRaw([
+                'sort' => [['field' => 'sort_order', 'order' => 'asc']],
+            ])),
+            DslQueryDslException::class,
+            '该字段不支持当前排序方向'
+        );
+
         $derivedDefaultSortDefinition = DslQueryDefinition::make('article')
             ->strict(true)
             ->allowFilter(['tab'])
@@ -388,6 +460,25 @@ final class QueryDslCoreRegression
         $batchDefaultSortQuery = $this->kernel->apply($this->newArticleQuery(), $batchDefaultSortDefinition, DslQueryInput::empty());
         Assert::contains('order by "sort_order" desc, "id" asc', $this->normalizeSql($batchDefaultSortQuery), 'defaultSortMany 应批量声明默认排序');
         Assert::resultIds($batchDefaultSortQuery, [3, 1, 2], 'defaultSortMany 生效结果集应匹配默认排序条件');
+
+        $relationSortDefinition = DslQueryDefinition::make('article')
+            ->relation('comments', 'comments')
+            ->strict(true)
+            ->allowSort(['comments.body']);
+        Assert::throws(
+            fn() => $this->kernel->apply($this->newArticleQuery(), $relationSortDefinition, DslQueryInput::fromRaw([
+                'sort' => [['entity' => 'comments', 'field' => 'body', 'order' => 'asc']],
+            ])),
+            DslQueryDslException::class,
+            '当前版本暂不支持关联排序'
+        );
+
+        $looseInvalidSortQuery = $this->kernel->apply(
+            $this->newArticleQuery(),
+            DslQueryDefinition::make('article')->strict(false)->allowSort(['id']),
+            DslQueryInput::fromRaw(['sort' => [['field' => 'id', 'order' => 'sideways']]])
+        );
+        Assert::notContains('order by', $this->normalizeSql($looseInvalidSortQuery), 'strict(false) 下非法排序方向应被忽略');
     }
 
     private function newArticleQuery(): Builder

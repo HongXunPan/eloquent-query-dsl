@@ -26,6 +26,7 @@
 - 增加开源友好的主入口：
   - `QueryDsl`；
   - `QueryDslResult`。
+- 增加关键词搜索声明 `allowKeywordSearch()`，支持一个 search 输入字段以 OR 分组命中多个主实体字段。
 - 增加输入协议扩展能力：
   - `DslInputMap`；
   - `DslInputParser`；
@@ -58,6 +59,7 @@
 - 将 Query DSL shared core 收口到共享 Composer 包。
 - 将业务项目 validator bridge 保留在使用侧，只通过中性的 `DslFilterNormalizer` 与共享包对接。
 - `QueryDsl` 主入口改用中性 `QueryDslKernel`，不再依赖带历史阶段语义的内核命名。
+- README 明确 search / filter / sort 语义边界，包括字段级 search 的 AND 语义、keyword search 的 OR 语义、filter 空值行为与 sort 优先级。
 - 将 README 从 skeleton / 草案口径调整为 pre-1.0 开源预备发布口径。
 - 明确 shared 包只返回中性查询事实，不承接 HTTP response、异常翻译、分页执行或 `{ page, list }` 响应结构。
 - `DslPaginationRequest` 现在通过 `DslPaginationPolicy` 输出受限分页事实，默认限制 `limit` 与 `export_limit` 上限。
