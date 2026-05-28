@@ -27,13 +27,14 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包处于 **pre-1.0 开源预备发布阶段**：已建立 Composer 包、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已提供 Query DSL core 对象、输入协议解析能力、开源友好主入口和包级 regression。正式 tag / Packagist 发布前仍会继续补齐发布说明、协作文件与质量门禁。
+当前包处于 **pre-1.0 开源预备发布阶段**：已建立 Composer 包、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已提供 Query DSL core 对象、输入协议解析能力、开源友好主入口、包级 regression、质量门禁与发布检查清单。正式 tag / Packagist 发布前仍需完成最终提交、远端 CI 观察与目标 tag 回填。
 
 相关项目文件：
 
 - [CHANGELOG](./CHANGELOG.md)
 - [贡献说明](./CONTRIBUTING.md)
 - [安全政策](./SECURITY.md)
+- [发布检查清单](./docs/发布检查清单.zh-CN.md)
 - [MIT License](./LICENSE)
 
 ## 推荐接入方式
@@ -354,6 +355,14 @@ composer require hongxunpan/eloquent-query-dsl
 ```
 
 正式 tag 发布前，可通过 Git 仓库或 path repository 做开发期试用；生产项目建议锁定明确 commit / tag，不直接依赖浮动 `dev-main`。
+
+## 发布前检查
+
+维护者发布 tag / GitHub Release / Packagist 前，应执行固定发布检查清单：
+
+- [发布检查清单](./docs/发布检查清单.zh-CN.md)
+
+该清单覆盖仓库边界、质量门禁、CI 矩阵、Packagist 前检查、tag 操作模板与发布后回填要求。
 
 ## 最小验证
 

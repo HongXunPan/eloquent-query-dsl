@@ -12,14 +12,15 @@
 
 1. `README.md`
 2. `CHANGELOG.md`
-3. `composer.json`
-4. `src/QueryDsl.php`
-5. `src/QueryDslResult.php`
-6. `src/Definition/DslQueryDefinition.php`
-7. `src/Input/DslInputMap.php`
-8. `src/Input/Contract/DslInputParser.php`
-9. `src/Filter/Contract/DslFilterNormalizer.php`
-10. `tests/`
+3. `docs/发布检查清单.zh-CN.md`
+4. `composer.json`
+5. `src/QueryDsl.php`
+6. `src/QueryDslResult.php`
+7. `src/Definition/DslQueryDefinition.php`
+8. `src/Input/DslInputMap.php`
+9. `src/Input/Contract/DslInputParser.php`
+10. `src/Filter/Contract/DslFilterNormalizer.php`
+11. `tests/`
 
 如果改动涉及 public / internal 边界，请先确认 README 中的 Public API 承诺是否需要同步更新。
 
@@ -169,7 +170,15 @@ composer analyse
 
 ---
 
-## 6. 提交前检查清单
+## 6. 发布前检查
+
+准备 tag / GitHub Release / Packagist 发布时，必须按源码仓库中的发布检查清单执行：
+
+- `docs/发布检查清单.zh-CN.md`
+
+该清单是发布前固定入口，不用聊天记录替代。
+
+## 7. 提交前检查清单
 
 提交前建议至少检查：
 

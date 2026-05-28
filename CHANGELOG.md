@@ -8,6 +8,10 @@
 
 ## [Unreleased]
 
+当前暂无未发布变更。
+
+## [0.1.0] - 待发布
+
 ### Added
 
 - 初始化 Composer 包 `hongxunpan/eloquent-query-dsl`。
