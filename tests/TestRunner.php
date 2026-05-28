@@ -97,7 +97,9 @@ $inputMap = DslInputMap::make()
 $inputParser = new DefaultDslInputParser();
 $mappedInput = $inputParser->queryInput([
     'where' => ['status' => 'published'],
-    'order_by' => ['updated_at' => 'desc'],
+    'order_by' => [
+        ['field' => 'updated_at', 'order' => 'desc'],
+    ],
 ], $inputMap);
 
 $assertions = [

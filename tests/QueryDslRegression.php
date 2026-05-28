@@ -43,7 +43,9 @@ final class QueryDslEntryRegression
             ->from([
                 'title' => 'Hello',
                 'where_status' => ' published ',
-                'sort' => '-sort_order',
+                'sort' => [
+                    ['field' => 'sort_order', 'order' => 'desc'],
+                ],
                 'page' => '2',
                 'per_page' => '500',
             ], DslInputMap::make()

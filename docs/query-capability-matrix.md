@@ -35,7 +35,7 @@ README stays as the entry page. Capability status and semantics should be mainta
 | ✅ | `allowDerivedFilter()` | filter | rule map | Yes | Suitable for null / not-null / has relation / doesn't have relation style rules |
 | ✅ | `allowDerivedFilterHandler()` | filter | callable handler | Yes | Application-owned custom filter behavior |
 | ✅ | `allowBetween()` | between | `[start, end]` | Yes | Applies `whereBetween`; business time-boundary policy stays outside core |
-| ✅ | `allowSort()` | sort | sort list / map / string | Yes | Explicit multi-field sorting with stable order |
+| ✅ | `allowSort()` | sort | sort item list | Yes | Explicit sorting; order priority must be represented by list item order, not string or map shorthand |
 | ✅ | `sortAscOnly()` / `sortDescOnly()` | sort | field list | Yes | Restricts direction for selected sort fields |
 | ✅ | `defaultSort()` / `defaultSortMany()` | sort | field + direction | Yes | Applies when explicit sort is absent |
 | ✅ | Derived default sort | sort | filter-based strategy | Yes | Chooses default sorts from parsed filter values |

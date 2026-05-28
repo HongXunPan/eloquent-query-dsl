@@ -112,7 +112,9 @@ $inputMap = DslInputMap::make()
 $result = QueryDsl::for($builder, $definition)
     ->from([
         'where' => ['status' => 'published'],
-        'order_by' => ['published_at' => 'desc'],
+        'order_by' => [
+            ['field' => 'published_at', 'order' => 'desc'],
+        ],
         'page' => 1,
         'per_page' => 20,
     ], $inputMap)
@@ -137,7 +139,9 @@ $inputMap = DslInputMap::make()
 $params = [
     'keyword' => 'alumni',
     'where_status' => 'published',
-    'sort' => '-published_at',
+    'sort' => [
+        ['field' => 'published_at', 'order' => 'desc'],
+    ],
     'page' => 1,
     'per_page' => 20,
 ];

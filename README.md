@@ -112,7 +112,9 @@ $result = QueryDsl::for(Article::query(), $definition)
         'query' => [
             'search' => ['title' => 'alumni'],
             'filter' => ['status' => 'published'],
-            'sort' => ['published_at' => 'desc'],
+            'sort' => [
+                ['field' => 'published_at', 'order' => 'desc'],
+            ],
         ],
         'page' => ['page' => 1, 'limit' => 20],
     ])
@@ -176,7 +178,9 @@ $params = [
         'search' => ['title' => 'alumni'],
         'filter' => ['status' => 'published'],
         'between' => ['created_at' => ['2026-01-01', '2026-12-31']],
-        'sort' => ['published_at' => 'desc'],
+        'sort' => [
+            ['field' => 'published_at', 'order' => 'desc'],
+        ],
     ],
     'page' => ['page' => 1, 'limit' => 20],
 ];
