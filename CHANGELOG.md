@@ -51,6 +51,7 @@
   - `.gitattributes`；
   - `.editorconfig`。
 - 增加 PHPStan 静态分析配置与 `composer analyse`。
+- 增加 PHPUnit 9.6、`phpunit.xml.dist` 与 Unit / Feature 分层测试。
 - 增加轻量代码风格检查脚本与 `composer cs:check`。
 - 增加 `composer quality`，串联 test / analyse / cs:check。
 
@@ -60,6 +61,7 @@
 - 将业务项目 validator bridge 保留在使用侧，只通过中性的 `DslFilterNormalizer` 与共享包对接。
 - `QueryDsl` 主入口改用中性 `QueryDslKernel`，不再依赖带历史阶段语义的内核命名。
 - README 明确 search / filter / sort 语义边界，包括字段级 search 的 AND 语义、keyword search 的 OR 语义、filter 空值行为与 sort 优先级。
+- `composer test` 改为先执行 PHPUnit 分层测试，再执行 legacy smoke。
 - 将 README 从 skeleton / 草案口径调整为 pre-1.0 开源预备发布口径。
 - 明确 shared 包只返回中性查询事实，不承接 HTTP response、异常翻译、分页执行或 `{ page, list }` 响应结构。
 - `DslPaginationRequest` 现在通过 `DslPaginationPolicy` 输出受限分页事实，默认限制 `limit` 与 `export_limit` 上限。

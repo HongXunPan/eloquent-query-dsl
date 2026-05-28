@@ -104,10 +104,14 @@ composer test
 
 当前 `composer test` 会串联：
 
-- `composer test:skeleton`
-- `composer test:input-parser`
-- `composer test:query-dsl`
-- `composer test:core`
+- `composer test:phpunit`
+- `composer test:legacy`
+
+其中：
+
+- `composer test:phpunit` 是正式 PHPUnit 分层测试；
+- `composer test:legacy` 保留历史轻量 runner，作为兼容 smoke；
+- legacy smoke 会继续串联 `test:skeleton / test:input-parser / test:query-dsl / test:core`。
 
 ### 4.3 CI 行为
 
@@ -120,9 +124,11 @@ composer test
 并执行：
 
 ```bash
-composer validate --no-check-publish
+composer validate --strict
 composer install --no-interaction --prefer-dist --no-progress
 composer test
+composer cs:check
+composer analyse
 ```
 
 ---

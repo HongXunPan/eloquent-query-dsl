@@ -368,10 +368,20 @@ composer cs:check
 
 当前 `composer test` 会执行：
 
-- `composer test:skeleton` / `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
-- `composer test:input-parser` / `tests/InputParserRegression.php`：默认输入协议、自定义参数名、JSON / array / flat 输入与异常边界；
-- `composer test:query-dsl` / `tests/QueryDslRegression.php`：`QueryDsl::for(...)->from(...)->apply()` 主入口、`QueryDslResult`、filter values 与 pagination；
-- `composer test:core` / `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
+- `composer test:phpunit`：正式 PHPUnit 分层测试，覆盖 Unit / Feature；
+- `composer test:legacy`：保留历史轻量 runner 作为兼容 smoke。
+
+当前 PHPUnit 测试分层：
+
+- `tests/Unit`：identifier 安全、分页策略、public API 兼容等纯对象测试；
+- `tests/Feature`：`QueryDsl` 主入口、search / filter / sort 语义、SQL / bindings / 结果集测试。
+
+当前 legacy smoke 会串联：
+
+- `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
+- `tests/InputParserRegression.php`：默认输入协议、自定义参数名、JSON / array / flat 输入与异常边界；
+- `tests/QueryDslRegression.php`：`QueryDsl::for(...)->from(...)->apply()` 主入口、`QueryDslResult`、filter values 与 pagination；
+- `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
 
 包级 core regression 的标准断言口径是：
 
@@ -382,7 +392,7 @@ composer cs:check
 
 共享测试支撑位于 `tests/Support/`：
 
-- `Assert.php`：无 PHPUnit 依赖的最小断言工具；
+- `Assert.php`：legacy smoke 使用的最小断言工具；
 - `TestDatabase.php`：SQLite in-memory schema 与 fixture；
 - `FakeDslFilterNormalizer.php`：包级测试用的中性 filter normalizer，不依赖业务仓 validator。
 
