@@ -23,7 +23,7 @@ class DslFieldConditionScopeApplier
      * @template TCondition of DslCondition
      * @param Builder<TModel> $query
      * @param array<int, TCondition> $conditions
-     * @param callable(Builder<TModel>, TCondition): void $apply
+     * @param callable(Builder<Model>, TCondition): void $apply
      */
     public function apply(Builder $query, DslQueryDefinition $definition, array $conditions, callable $apply): void
     {
@@ -39,8 +39,16 @@ class DslFieldConditionScopeApplier
             $relationConditions[$condition->fieldPath()->entity()][] = $condition;
         }
 
+        /**
+         * 条件应用器只依赖 Builder 的 where / order 等查询能力；
+         * relation 场景下 Eloquent 会交给关联模型 Builder，因此这里显式做模型类型擦除。
+         *
+         * @var Builder<Model> $queryForApply
+         */
+        $queryForApply = $query;
+
         foreach ($mainConditions as $condition) {
-            $apply($query, $condition);
+            $apply($queryForApply, $condition);
         }
 
         foreach ($relationConditions as $entity => $conditionsInRelation) {
@@ -54,7 +62,7 @@ class DslFieldConditionScopeApplier
             $query->whereHas(
                 $relation->relation(),
                 /**
-                 * @param Builder<TModel> $query
+                 * @param Builder<Model> $query
                  */
                 function (Builder $query) use ($conditionsInRelation, $apply): void {
                     foreach ($conditionsInRelation as $condition) {

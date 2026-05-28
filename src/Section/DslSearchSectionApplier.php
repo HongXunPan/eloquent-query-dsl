@@ -55,7 +55,7 @@ class DslSearchSectionApplier implements DslSectionApplier
             $definition,
             $conditions,
             /**
-             * @param Builder<TModel> $query
+             * @param Builder<Model> $query
              */
             function (Builder $query, DslSearchCondition $condition) use ($searchSection): void {
                 $derivedBehavior = $searchSection?->field($condition->canonicalField())?->derivedSearchBehavior();

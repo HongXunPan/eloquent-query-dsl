@@ -63,7 +63,7 @@ class DslFilterSectionApplier implements DslSectionApplier
             $definition,
             $conditions,
             /**
-             * @param Builder<TModel> $query
+             * @param Builder<Model> $query
              */
             function (Builder $query, DslFilterCondition $condition): void {
                 $column = $query->qualifyColumn($condition->fieldPath()->field());
