@@ -65,7 +65,7 @@ final class Assert
      */
     public static function resultIds(Builder $query, array $expectedIds, string $message): void
     {
-        $ids = array_map('intval', $query->pluck($query->getModel()->getKeyName())->all());
+        $ids = array_map('intval', $query->pluck('id')->all());
         self::same($expectedIds, $ids, $message);
     }
 }

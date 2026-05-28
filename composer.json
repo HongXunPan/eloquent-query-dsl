@@ -40,12 +40,20 @@
             "@test:legacy"
         ],
         "analyse": "phpstan analyse --configuration=phpstan.neon.dist --no-progress --error-format=table",
-        "cs:check": "@php scripts/check_code_style.php",
+        "cs:php": "php-cs-fixer fix --config=.php-cs-fixer.dist.php --dry-run --diff",
+        "cs:baseline": "@php scripts/check_code_style.php",
+        "cs:check": [
+            "@cs:php",
+            "@cs:baseline"
+        ],
+        "cs:fix": "php-cs-fixer fix --config=.php-cs-fixer.dist.php",
         "quality": [
             "@test",
             "@analyse",
-            "@cs:check"
+            "@cs:check",
+            "@security:audit"
         ],
+        "security:audit": "composer audit --no-interaction",
         "test:legacy": [
             "@test:skeleton",
             "@test:input-parser",
@@ -60,7 +68,9 @@
         }
     },
     "require-dev": {
+        "friendsofphp/php-cs-fixer": "^3.64",
         "phpstan/phpstan": "^1.12",
-        "phpunit/phpunit": "^9.6"
+        "phpunit/phpunit": "^9.6",
+        "symfony/process": "^5.4.46 || ^6.4.14 || ^7.1.7"
     }
 }

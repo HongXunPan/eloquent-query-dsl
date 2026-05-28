@@ -22,7 +22,7 @@ final class DslIdentifier
         $identifier = trim($identifier);
         if (!self::isValid($identifier)) {
             throw DslQueryDslDefinitionException::fromMessage(
-                'query dsl ' . $label . '格式错误：' . $identifier
+                'query dsl ' . $label . '格式错误：' . $identifier,
             );
         }
 

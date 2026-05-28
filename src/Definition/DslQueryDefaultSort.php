@@ -37,11 +37,11 @@ class DslQueryDefaultSort
     public static function forField(
         string $field,
         string $mainEntity,
-        string $order = self::ORDER_ASC
+        string $order = self::ORDER_ASC,
     ): self {
         return self::make(
             DslFieldPath::fromDefinition($field, $mainEntity),
-            $order
+            $order,
         );
     }
 

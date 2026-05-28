@@ -10,7 +10,12 @@ use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
 
 final class FakeDslFilterNormalizer implements DslFilterNormalizer
 {
-    public function normalize(array $payload, array $rules, array $options = array()): DslNormalizedFilterSet
+    /**
+     * @param array<string, mixed> $payload
+     * @param array<string, string> $rules
+     * @param array<string, mixed> $options
+     */
+    public function normalize(array $payload, array $rules, array $options = []): DslNormalizedFilterSet
     {
         $normalizedPayload = $payload;
         $items = [];
@@ -64,6 +69,7 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
     }
 
     /**
+     * @param array<string, mixed> $data
      * @return array{exists: bool, value: mixed}
      */
     private function getArrayValueByPath(array $data, string $path): array
@@ -83,6 +89,9 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
         return ['exists' => true, 'value' => $current];
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     private function setArrayValueByPath(array &$data, string $path, mixed $value): void
     {
         $segments = explode('.', $path);
@@ -107,7 +116,7 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
     private function normalizeQueryValues(mixed $value): array
     {
         if (is_array($value)) {
-            return array_values(array_filter($value, fn(mixed $item): bool => $this->hasMeaningfulValue($item)));
+            return array_values(array_filter($value, fn (mixed $item): bool => $this->hasMeaningfulValue($item)));
         }
 
         return $this->hasMeaningfulValue($value) ? [$value] : [];

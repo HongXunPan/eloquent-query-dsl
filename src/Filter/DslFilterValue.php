@@ -14,14 +14,24 @@ use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 class DslFilterValue
 {
     protected DslQueryFieldDefinition $definition;
+
+    /**
+     * @var array<int, mixed>
+     */
     protected array $values;
 
+    /**
+     * @param array<int, mixed> $values
+     */
     private function __construct(DslQueryFieldDefinition $definition, array $values)
     {
         $this->definition = $definition;
         $this->values = array_values($values);
     }
 
+    /**
+     * @param array<int, mixed> $values
+     */
     public static function fromDefinition(DslQueryFieldDefinition $definition, array $values): self
     {
         return new self($definition, $values);
@@ -47,6 +57,9 @@ class DslFilterValue
         return $this->definition->fieldPath()->field();
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function values(): array
     {
         return $this->values;

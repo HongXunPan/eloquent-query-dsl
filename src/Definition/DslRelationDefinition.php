@@ -31,7 +31,7 @@ class DslRelationDefinition
 
         return new self(
             DslIdentifier::forDefinition($entity, '关联实体'),
-            DslIdentifier::forDefinition($relation, 'relation')
+            DslIdentifier::forDefinition($relation, 'relation'),
         );
     }
 

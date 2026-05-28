@@ -117,17 +117,20 @@ composer test
 
 当前 GitHub Actions 默认覆盖：
 
-- PHP 8.0
-- PHP 8.2
-- PHP 8.3
+- PHP 8.0 + illuminate/database 9
+- PHP 8.1 + illuminate/database 10
+- PHP 8.2 + illuminate/database 11
+- PHP 8.3 + illuminate/database 12
 
 并执行：
 
 ```bash
 composer validate --strict
-composer install --no-interaction --prefer-dist --no-progress
+composer require illuminate/database:<matrix-version> --no-update --no-interaction
+composer update --no-interaction --prefer-dist --no-progress
 composer test
 composer cs:check
+composer security:audit
 composer analyse
 ```
 
@@ -172,6 +175,9 @@ composer analyse
 
 - [ ] `composer validate --strict` 通过
 - [ ] `composer test` 通过
+- [ ] `composer analyse` 通过
+- [ ] `composer cs:check` 通过
+- [ ] `composer security:audit` 通过
 - [ ] 没有把 `vendor/`、`.idea/`、本地缓存带进仓库
 - [ ] 若改了公开能力，README 已同步
 - [ ] 若改了对外可见行为，CHANGELOG 已同步

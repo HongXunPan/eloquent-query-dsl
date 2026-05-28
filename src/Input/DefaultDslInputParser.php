@@ -16,12 +16,15 @@ use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
  */
 class DefaultDslInputParser implements DslInputParser
 {
+    private DslQueryPayloadMapper $queryPayloadMapper;
+    private DslPagePayloadMapper $pagePayloadMapper;
+
     public function __construct(
-        private ?DslQueryPayloadMapper $queryPayloadMapper = null,
-        private ?DslPagePayloadMapper $pagePayloadMapper = null
+        ?DslQueryPayloadMapper $queryPayloadMapper = null,
+        ?DslPagePayloadMapper $pagePayloadMapper = null,
     ) {
-        $this->queryPayloadMapper ??= new DslQueryPayloadMapper();
-        $this->pagePayloadMapper ??= new DslPagePayloadMapper();
+        $this->queryPayloadMapper = $queryPayloadMapper ?? new DslQueryPayloadMapper();
+        $this->pagePayloadMapper = $pagePayloadMapper ?? new DslPagePayloadMapper();
     }
 
     /**
@@ -32,8 +35,8 @@ class DefaultDslInputParser implements DslInputParser
         return DslQueryInput::fromRaw(
             $this->queryPayloadMapper->map(
                 DslInputParams::fromArray($params),
-                $inputMap
-            )
+                $inputMap,
+            ),
         );
     }
 
@@ -44,7 +47,7 @@ class DefaultDslInputParser implements DslInputParser
     {
         return $this->pagePayloadMapper->toPageInput(
             DslInputParams::fromArray($params),
-            $inputMap
+            $inputMap,
         );
     }
 }

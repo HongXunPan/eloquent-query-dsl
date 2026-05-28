@@ -14,7 +14,7 @@ final class PaginationPolicyTest extends TestCase
     public function testDefaultPolicyLimitsPageFacts(): void
     {
         $request = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '2', 'limit' => '500'], '5000')
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '500'], '5000'),
         );
 
         $this->assertSame(1, $request->page());
@@ -28,7 +28,7 @@ final class PaginationPolicyTest extends TestCase
             DslPageInput::fromRaw(['page' => '2', 'limit' => '80'], '150'),
             DslPaginationPolicy::default()
                 ->withMaxLimit(50)
-                ->withoutExportLimit()
+                ->withoutExportLimit(),
         );
 
         $this->assertSame(2, $request->page());
@@ -39,7 +39,7 @@ final class PaginationPolicyTest extends TestCase
     public function testFloatAndBoolAreInvalidByDefault(): void
     {
         $request = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '1.5', 'limit' => true], 99.9)
+            DslPageInput::fromRaw(['page' => '1.5', 'limit' => true], 99.9),
         );
 
         $this->assertSame(1, $request->page());

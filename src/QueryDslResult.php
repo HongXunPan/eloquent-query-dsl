@@ -17,7 +17,7 @@ class QueryDslResult
 {
     public function __construct(
         private Builder $builder,
-        private DslQueryRequestContext $context
+        private DslQueryRequestContext $context,
     ) {
     }
 

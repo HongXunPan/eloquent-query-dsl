@@ -24,6 +24,9 @@ class DslFieldMapReader
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
     }
 
+    /**
+     * @return array<string, mixed>|null
+     */
     public function read(DslQueryInput $input, string $sectionName): ?array
     {
         $section = $input->get($sectionName);
@@ -39,6 +42,9 @@ class DslFieldMapReader
         return $value;
     }
 
+    /**
+     * @param array<string, mixed> $sectionValue
+     */
     public function each(DslQueryDefinition $definition, array $sectionValue, callable $handle): void
     {
         foreach ($sectionValue as $key => $value) {
@@ -55,7 +61,7 @@ class DslFieldMapReader
 
                     $handle(
                         DslFieldPath::fromInput($key . '.' . trim($field), $definition->mainEntity()),
-                        $fieldValue
+                        $fieldValue,
                     );
                 }
                 continue;

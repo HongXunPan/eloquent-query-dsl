@@ -42,7 +42,7 @@
   - `tests/InputParserRegression.php`；
   - `tests/QueryDslRegression.php`；
   - `tests/CoreRegression.php`。
-- 增加 GitHub Actions CI，覆盖 PHP 8.0 / 8.2 / 8.3。
+- 增加 GitHub Actions CI，覆盖 PHP 8.0 / Illuminate 9、PHP 8.1 / Illuminate 10、PHP 8.2 / Illuminate 11、PHP 8.3 / Illuminate 12。
 - 补齐 MIT `LICENSE`。
 - 增加开源协作文件：
   - `CHANGELOG.md`；
@@ -52,8 +52,10 @@
   - `.editorconfig`。
 - 增加 PHPStan 静态分析配置与 `composer analyse`。
 - 增加 PHPUnit 9.6、`phpunit.xml.dist` 与 Unit / Feature 分层测试。
-- 增加轻量代码风格检查脚本与 `composer cs:check`。
-- 增加 `composer quality`，串联 test / analyse / cs:check。
+- 增加 PHP-CS-Fixer 配置、轻量代码风格检查脚本与 `composer cs:check`。
+- 增加 `composer cs:fix`，用于本地自动修复 PHP 代码风格。
+- 增加 `composer security:audit`，用于依赖安全审计。
+- 增加 `composer quality`，串联 test / analyse / cs:check / security:audit。
 
 ### Changed
 
@@ -62,10 +64,11 @@
 - `QueryDsl` 主入口改用中性 `QueryDslKernel`，不再依赖带历史阶段语义的内核命名。
 - README 明确 search / filter / sort 语义边界，包括字段级 search 的 AND 语义、keyword search 的 OR 语义、filter 空值行为与 sort 优先级。
 - `composer test` 改为先执行 PHPUnit 分层测试，再执行 legacy smoke。
+- PHPStan 从 level 3 提升到 level 8，并补齐 public API、内部数组与测试夹具类型标注。
 - 将 README 从 skeleton / 草案口径调整为 pre-1.0 开源预备发布口径。
 - 明确 shared 包只返回中性查询事实，不承接 HTTP response、异常翻译、分页执行或 `{ page, list }` 响应结构。
 - `DslPaginationRequest` 现在通过 `DslPaginationPolicy` 输出受限分页事实，默认限制 `limit` 与 `export_limit` 上限。
-- CI 已接入 `composer validate --strict`、`composer test`、`composer cs:check` 与静态分析 job。
+- CI 已接入 `composer validate --strict`、`composer test`、`composer cs:check`、`composer security:audit`、PHPStan level 8 与 Illuminate 版本矩阵。
 
 ### Not included
 

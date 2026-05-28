@@ -38,7 +38,7 @@ class DslFilterSectionApplier implements DslSectionApplier
         ?DslSectionReader $sectionReader = null,
         ?DslFieldMapReader $fieldMapReader = null,
         ?DslFieldConditionScopeApplier $scopeApplier = null,
-        ?DslFilterNormalizer $filterNormalizer = null
+        ?DslFilterNormalizer $filterNormalizer = null,
     ) {
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
         $this->fieldMapReader = $fieldMapReader ?? new DslFieldMapReader($this->sectionReader);
@@ -75,14 +75,14 @@ class DslFilterSectionApplier implements DslSectionApplier
     public function conditions(DslQueryDefinition $definition, DslQueryInput $input): array
     {
         return $this->conditionsFromFilterValues(
-            $this->filterValues($definition, $input)
+            $this->filterValues($definition, $input),
         );
     }
 
     public function filterValuesFromContext(DslQueryRequestContext $context): DslFilterValues
     {
         return $context->filterValuesUsing(
-            fn (DslQueryDefinition $definition, DslQueryInput $input): DslFilterValues => $this->filterValues($definition, $input)
+            fn (DslQueryDefinition $definition, DslQueryInput $input): DslFilterValues => $this->filterValues($definition, $input),
         );
     }
 
@@ -102,14 +102,14 @@ class DslFilterSectionApplier implements DslSectionApplier
                 $this->setArrayValueByPath(
                     $normalizedPayload,
                     $this->payloadField($fieldDefinition),
-                    $value
+                    $value,
                 );
             });
         }
 
         $normalizedFilterSet = $this->normalizeFilterSetByDefinitions(
             $normalizedPayload,
-            $sectionDefinition?->fields() ?? []
+            $sectionDefinition?->fields() ?? [],
         );
 
         foreach ($sectionDefinition?->fields() ?? [] as $fieldDefinition) {
@@ -120,7 +120,7 @@ class DslFilterSectionApplier implements DslSectionApplier
 
             $filterValues->put(DslFilterValue::fromDefinition(
                 $fieldDefinition,
-                $item->normalizedValues()
+                $item->normalizedValues(),
             ));
         }
 
@@ -128,6 +128,7 @@ class DslFilterSectionApplier implements DslSectionApplier
     }
 
     /**
+     * @param array<string, mixed> $payload
      * @param array<string, DslQueryFieldDefinition> $fieldDefinitions
      */
     protected function normalizeFilterSetByDefinitions(array $payload, array $fieldDefinitions): DslNormalizedFilterSet
@@ -158,7 +159,7 @@ class DslFilterSectionApplier implements DslSectionApplier
         ]);
         if (!$result->isPassed()) {
             throw DslQueryDslException::invalidQuery(
-                $result->errors()[0] ?? 'query.filter 参数错误'
+                $result->errors()[0] ?? 'query.filter 参数错误',
             );
         }
 
@@ -166,6 +167,7 @@ class DslFilterSectionApplier implements DslSectionApplier
     }
 
     /**
+     * @param array<string, mixed> $payload
      * @param array<string, DslQueryFieldDefinition> $fieldDefinitions
      */
     protected function normalizeFilterSetWithoutRules(array $payload, array $fieldDefinitions): DslNormalizedFilterSet
@@ -180,7 +182,7 @@ class DslFilterSectionApplier implements DslSectionApplier
 
             $items[$payloadField] = new DslNormalizedFilterItem(
                 $payloadField,
-                $this->normalizeQueryValues($normalizedValueInfo['value'])
+                $this->normalizeQueryValues($normalizedValueInfo['value']),
             );
         }
 
@@ -220,7 +222,7 @@ class DslFilterSectionApplier implements DslSectionApplier
 
             $conditions[] = DslFilterCondition::fromField(
                 $filterValue->fieldPath(),
-                $filterValue->queryValue()
+                $filterValue->queryValue(),
             );
         }
 
@@ -234,6 +236,9 @@ class DslFilterSectionApplier implements DslSectionApplier
             : $fieldDefinition->canonical();
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     protected function setArrayValueByPath(array &$data, string $path, mixed $value): void
     {
         if ($path === '') {

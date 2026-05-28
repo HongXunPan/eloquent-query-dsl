@@ -31,7 +31,7 @@ class DslSearchSectionApplier implements DslSectionApplier
     public function __construct(
         ?DslSectionReader $sectionReader = null,
         ?DslFieldMapReader $fieldMapReader = null,
-        ?DslFieldConditionScopeApplier $scopeApplier = null
+        ?DslFieldConditionScopeApplier $scopeApplier = null,
     ) {
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
         $this->fieldMapReader = $fieldMapReader ?? new DslFieldMapReader($this->sectionReader);
@@ -87,7 +87,7 @@ class DslSearchSectionApplier implements DslSectionApplier
             $conditions[] = DslSearchCondition::fromField(
                 $fieldPath,
                 $value,
-                $this->normalizeSearchMode($fieldDefinition->searchMode())
+                $this->normalizeSearchMode($fieldDefinition->searchMode()),
             );
         });
 

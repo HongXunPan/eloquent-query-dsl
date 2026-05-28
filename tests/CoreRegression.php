@@ -24,6 +24,7 @@ use HongXunPan\EloquentQueryDsl\Tests\Support\FakeDslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Tests\Support\TestDatabase;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/Support/Assert.php';
@@ -67,9 +68,9 @@ final class QueryDslCoreRegression
         Assert::true($queryInput->has('search'), 'query JSON object 应成功解析');
 
         Assert::throws(
-            fn() => DslQueryInput::fromRaw('[1,2]'),
+            fn () => DslQueryInput::fromRaw('[1,2]'),
             DslQueryDslException::class,
-            'query格式错误'
+            'query格式错误',
         );
 
         $pageInput = DslPageInput::fromRaw('{"page":"2","limit":"30"}', '200');
@@ -79,27 +80,27 @@ final class QueryDslCoreRegression
         Assert::same(200, $paginationRequest->exportLimit(), 'export_limit 应成功解析');
 
         $fallbackRequest = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '0', 'limit' => 'abc'], 'oops')
+            DslPageInput::fromRaw(['page' => '0', 'limit' => 'abc'], 'oops'),
         );
         Assert::same(1, $fallbackRequest->page(), '非法 page 应回退默认第一页');
         Assert::same(20, $fallbackRequest->limit(), '非法 limit / export_limit 应回退默认 limit');
         Assert::same(null, $fallbackRequest->exportLimit(), '非法 export_limit 不应写入分页事实');
 
         $boundedLimitRequest = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '2', 'limit' => '500'])
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '500']),
         );
         Assert::same(2, $boundedLimitRequest->page(), '普通分页 page 应保持有效输入');
         Assert::same(100, $boundedLimitRequest->limit(), '默认策略应限制超大 limit');
 
         $boundedExportRequest = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '2', 'limit' => '30'], '5000')
+            DslPageInput::fromRaw(['page' => '2', 'limit' => '30'], '5000'),
         );
         Assert::same(1, $boundedExportRequest->page(), 'export_limit 生效时 page 应使用默认页');
         Assert::same(1000, $boundedExportRequest->limit(), '默认策略应限制超大 export_limit');
         Assert::same(1000, $boundedExportRequest->exportLimit(), 'export_limit 事实应使用策略上限');
 
         $invalidNumericRequest = DslPaginationRequest::fromPageInput(
-            DslPageInput::fromRaw(['page' => '1.5', 'limit' => true], 99.9)
+            DslPageInput::fromRaw(['page' => '1.5', 'limit' => true], 99.9),
         );
         Assert::same(1, $invalidNumericRequest->page(), '非整数字符串 page 应回退默认页');
         Assert::same(20, $invalidNumericRequest->limit(), 'bool limit / float export_limit 应回退默认 limit');
@@ -110,7 +111,7 @@ final class QueryDslCoreRegression
             DslPaginationPolicy::default()
                 ->withMaxLimit(50)
                 ->withMaxExportLimit(200)
-                ->withoutExportLimit()
+                ->withoutExportLimit(),
         );
         Assert::same(2, $customPolicyRequest->page(), '自定义策略禁用 export_limit 后 page 应保持输入');
         Assert::same(50, $customPolicyRequest->limit(), '自定义策略应限制 limit');
@@ -120,33 +121,33 @@ final class QueryDslCoreRegression
     private function testIdentifierSecurityBoundaries(): void
     {
         Assert::throws(
-            fn() => DslQueryDefinition::make('article;drop'),
+            fn () => DslQueryDefinition::make('article;drop'),
             DslQueryDslDefinitionException::class,
-            '主实体格式错误'
+            '主实体格式错误',
         );
 
         Assert::throws(
-            fn() => DslQueryDefinition::make('article')->allowFilter(['status desc']),
+            fn () => DslQueryDefinition::make('article')->allowFilter(['status desc']),
             DslQueryDslDefinitionException::class,
-            '字段格式错误'
+            '字段格式错误',
         );
 
         Assert::throws(
-            fn() => DslQueryDefinition::make('article')->allowSearch(['comments.body.extra']),
+            fn () => DslQueryDefinition::make('article')->allowSearch(['comments.body.extra']),
             DslQueryDslDefinitionException::class,
-            '字段格式错误'
+            '字段格式错误',
         );
 
         Assert::throws(
-            fn() => DslQueryDefinition::make('article')->relation('comments.author', 'comments'),
+            fn () => DslQueryDefinition::make('article')->relation('comments.author', 'comments'),
             DslQueryDslDefinitionException::class,
-            '关联实体格式错误'
+            '关联实体格式错误',
         );
 
         Assert::throws(
-            fn() => DslQueryDefinition::make('article')->relation('comments', 'comments.author'),
+            fn () => DslQueryDefinition::make('article')->relation('comments', 'comments.author'),
             DslQueryDslDefinitionException::class,
-            'relation格式错误'
+            'relation格式错误',
         );
 
         $definition = DslQueryDefinition::make('article')
@@ -155,19 +156,19 @@ final class QueryDslCoreRegression
             ->allowSort(['id']);
 
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+            fn () => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
                 'filter' => ['status desc' => 'draft'],
             ])),
             DslQueryDslException::class,
-            'query字段格式错误'
+            'query字段格式错误',
         );
 
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
+            fn () => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw([
                 'sort' => [['field' => 'id desc', 'order' => 'asc']],
             ])),
             DslQueryDslException::class,
-            'query字段格式错误'
+            'query字段格式错误',
         );
     }
 
@@ -241,15 +242,15 @@ final class QueryDslCoreRegression
         Assert::resultIds($keywordRightLikeQuery, [1, 2], 'right_like keyword search 生效结果集应匹配输入条件');
 
         Assert::throws(
-            fn() => DslQueryDefinition::make('article')->allowKeywordSearch('keyword', ['comments.body']),
+            fn () => DslQueryDefinition::make('article')->allowKeywordSearch('keyword', ['comments.body']),
             DslQueryDslDefinitionException::class,
-            '关键词搜索当前仅支持主实体字段'
+            '关键词搜索当前仅支持主实体字段',
         );
 
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])),
+            fn () => $this->kernel->apply($this->newArticleQuery(), $definition, DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])),
             DslQueryDslException::class,
-            '未开放字段'
+            '未开放字段',
         );
     }
 
@@ -307,16 +308,16 @@ final class QueryDslCoreRegression
 
         $requiredDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['article_id' => 'required']);
         Assert::throws(
-            fn() => $this->filterSectionApplier->filterValues($requiredDefinition, DslQueryInput::empty()),
+            fn () => $this->filterSectionApplier->filterValues($requiredDefinition, DslQueryInput::empty()),
             DslQueryDslException::class,
-            '请输入article_id'
+            '请输入article_id',
         );
 
         $normalizerMissingApplier = new DslFilterSectionApplier();
         Assert::throws(
-            fn() => $normalizerMissingApplier->filterValues($trimRuleDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
+            fn () => $normalizerMissingApplier->filterValues($trimRuleDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
             DslQueryDslDefinitionException::class,
-            'filter normalizer 未配置'
+            'filter normalizer 未配置',
         );
 
         $nullMapDefinition = DslQueryDefinition::make('article')
@@ -358,15 +359,15 @@ final class QueryDslCoreRegression
     {
         $strictDefinition = DslQueryDefinition::make('article')->strict(true)->allowSearch(['title']);
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $strictDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
+            fn () => $this->kernel->apply($this->newArticleQuery(), $strictDefinition, DslQueryInput::fromRaw(['filter' => ['status' => 'draft']])),
             DslQueryDslException::class,
-            '当前查询未开放 filter 能力'
+            '当前查询未开放 filter 能力',
         );
 
         $looseFieldQuery = $this->kernel->apply(
             $this->newArticleQuery(),
             DslQueryDefinition::make('article')->strict(false)->allowSearch(['title']),
-            DslQueryInput::fromRaw(['search' => ['unknown' => 'x']])
+            DslQueryInput::fromRaw(['search' => ['unknown' => 'x']]),
         );
         Assert::notContains('where', $this->normalizeSql($looseFieldQuery), 'strict(false) 下未开放字段应被忽略');
         Assert::resultIds($looseFieldQuery, [1, 2, 3], 'strict(false) 下未开放字段不应影响结果集');
@@ -399,13 +400,13 @@ final class QueryDslCoreRegression
         Assert::resultIds($relationFilterQuery, [1], 'relation filter 生效结果集应匹配输入条件');
 
         Assert::throws(
-            fn() => $this->kernel->apply(
+            fn () => $this->kernel->apply(
                 $this->newArticleQuery(),
                 DslQueryDefinition::make('article')->strict(true)->allowSearch(['comments.body']),
-                DslQueryInput::fromRaw(['search' => ['comments.body' => 'first']])
+                DslQueryInput::fromRaw(['search' => ['comments.body' => 'first']]),
             ),
             DslQueryDslDefinitionException::class,
-            'relation 未配置映射'
+            'relation 未配置映射',
         );
     }
 
@@ -423,20 +424,20 @@ final class QueryDslCoreRegression
 
         $ascOnlyDefinition = DslQueryDefinition::make('article')->strict(true)->allowSort(['sort_order'])->sortAscOnly(['sort_order']);
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $ascOnlyDefinition, DslQueryInput::fromRaw([
+            fn () => $this->kernel->apply($this->newArticleQuery(), $ascOnlyDefinition, DslQueryInput::fromRaw([
                 'sort' => [['field' => 'sort_order', 'order' => 'desc']],
             ])),
             DslQueryDslException::class,
-            '该字段不支持当前排序方向'
+            '该字段不支持当前排序方向',
         );
 
         $descOnlyDefinition = DslQueryDefinition::make('article')->strict(true)->allowSort(['sort_order'])->sortDescOnly(['sort_order']);
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $descOnlyDefinition, DslQueryInput::fromRaw([
+            fn () => $this->kernel->apply($this->newArticleQuery(), $descOnlyDefinition, DslQueryInput::fromRaw([
                 'sort' => [['field' => 'sort_order', 'order' => 'asc']],
             ])),
             DslQueryDslException::class,
-            '该字段不支持当前排序方向'
+            '该字段不支持当前排序方向',
         );
 
         $derivedDefaultSortDefinition = DslQueryDefinition::make('article')
@@ -455,7 +456,7 @@ final class QueryDslCoreRegression
 
         $batchDefaultSortDefinition = DslQueryDefinition::make('article')->strict(true)->defaultSortMany(
             DslQueryDefaultSort::desc('sort_order', 'article'),
-            DslQueryDefaultSort::asc('id', 'article')
+            DslQueryDefaultSort::asc('id', 'article'),
         );
         $batchDefaultSortQuery = $this->kernel->apply($this->newArticleQuery(), $batchDefaultSortDefinition, DslQueryInput::empty());
         Assert::contains('order by "sort_order" desc, "id" asc', $this->normalizeSql($batchDefaultSortQuery), 'defaultSortMany 应批量声明默认排序');
@@ -466,17 +467,17 @@ final class QueryDslCoreRegression
             ->strict(true)
             ->allowSort(['comments.body']);
         Assert::throws(
-            fn() => $this->kernel->apply($this->newArticleQuery(), $relationSortDefinition, DslQueryInput::fromRaw([
+            fn () => $this->kernel->apply($this->newArticleQuery(), $relationSortDefinition, DslQueryInput::fromRaw([
                 'sort' => [['entity' => 'comments', 'field' => 'body', 'order' => 'asc']],
             ])),
             DslQueryDslException::class,
-            '当前版本暂不支持关联排序'
+            '当前版本暂不支持关联排序',
         );
 
         $looseInvalidSortQuery = $this->kernel->apply(
             $this->newArticleQuery(),
             DslQueryDefinition::make('article')->strict(false)->allowSort(['id']),
-            DslQueryInput::fromRaw(['sort' => [['field' => 'id', 'order' => 'sideways']]])
+            DslQueryInput::fromRaw(['sort' => [['field' => 'id', 'order' => 'sideways']]]),
         );
         Assert::notContains('order by', $this->normalizeSql($looseInvalidSortQuery), 'strict(false) 下非法排序方向应被忽略');
     }
@@ -499,7 +500,7 @@ final class QueryDslCoreRegressionArticle extends Model
     public $timestamps = false;
     protected $guarded = [];
 
-    public function comments()
+    public function comments(): HasMany
     {
         return $this->hasMany(QueryDslCoreRegressionComment::class, 'article_id');
     }

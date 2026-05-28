@@ -26,6 +26,8 @@ class DslQueryInput
 
     /**
      * 从请求参数数组中读取 query 并解析。
+     *
+     * @param array<string, mixed> $params
      */
     public static function fromRequestParams(array $params): self
     {
@@ -90,6 +92,8 @@ class DslQueryInput
 
     /**
      * 返回所有 section 名称。
+     *
+     * @return array<int, string>
      */
     public function names(): array
     {

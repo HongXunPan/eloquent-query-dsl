@@ -22,7 +22,7 @@ class DslSectionReader
         DslQueryDefinition $definition,
         string $sectionName,
         DslFieldPath $fieldPath,
-        mixed $value
+        mixed $value,
     ): ?DslQueryFieldDefinition {
         $sectionDefinition = $this->sectionDefinition($definition, $sectionName, $value);
         if ($sectionDefinition === null) {
@@ -41,7 +41,7 @@ class DslSectionReader
     public function sectionDefinition(
         DslQueryDefinition $definition,
         string $sectionName,
-        mixed $value
+        mixed $value,
     ): ?DslQuerySectionDefinition {
         $sectionDefinition = $definition->getSection($sectionName);
         if ($sectionDefinition !== null) {
@@ -73,7 +73,7 @@ class DslSectionReader
         DslQueryDefinition $definition,
         string $sectionName,
         string $field,
-        string $message
+        string $message,
     ): void {
         if ($definition->isStrict()) {
             throw DslQueryDslException::invalidField($sectionName, $field, $message);
@@ -89,6 +89,9 @@ class DslSectionReader
         return $value || $value === '0' || $value === 0;
     }
 
+    /**
+     * @param array<mixed, mixed> $data
+     */
     public function isListArray(array $data): bool
     {
         $index = 0;

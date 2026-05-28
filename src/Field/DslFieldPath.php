@@ -22,7 +22,7 @@ class DslFieldPath
         string $originalField,
         string $mainEntity,
         string $entity,
-        string $field
+        string $field,
     ) {
         $this->originalField = $originalField;
         $this->mainEntity = $mainEntity;
@@ -53,7 +53,7 @@ class DslFieldPath
                 $originalField,
                 $mainEntity,
                 $mainEntity,
-                DslIdentifier::forDefinition($field, '字段')
+                DslIdentifier::forDefinition($field, '字段'),
             );
         }
 
@@ -67,7 +67,7 @@ class DslFieldPath
             $originalField,
             $mainEntity,
             DslIdentifier::forDefinition($entity, '实体'),
-            DslIdentifier::forDefinition($actualField, '字段')
+            DslIdentifier::forDefinition($actualField, '字段'),
         );
     }
 
@@ -86,7 +86,7 @@ class DslFieldPath
                 $originalField,
                 $mainEntity,
                 $mainEntity,
-                DslIdentifier::forInput($field)
+                DslIdentifier::forInput($field),
             );
         }
 
@@ -100,7 +100,7 @@ class DslFieldPath
             $originalField,
             $mainEntity,
             DslIdentifier::forInput($entity),
-            DslIdentifier::forInput($actualField)
+            DslIdentifier::forInput($actualField),
         );
     }
 

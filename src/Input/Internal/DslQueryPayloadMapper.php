@@ -19,12 +19,15 @@ class DslQueryPayloadMapper
     private const SECTION_BETWEEN = 'between';
     private const SECTION_SORT = 'sort';
 
+    private DslJsonDecoder $jsonDecoder;
+    private DslSortInputNormalizer $sortInputNormalizer;
+
     public function __construct(
-        private ?DslJsonDecoder $jsonDecoder = null,
-        private ?DslSortInputNormalizer $sortInputNormalizer = null
+        ?DslJsonDecoder $jsonDecoder = null,
+        ?DslSortInputNormalizer $sortInputNormalizer = null,
     ) {
-        $this->jsonDecoder ??= new DslJsonDecoder();
-        $this->sortInputNormalizer ??= new DslSortInputNormalizer($this->jsonDecoder);
+        $this->jsonDecoder = $jsonDecoder ?? new DslJsonDecoder();
+        $this->sortInputNormalizer = $sortInputNormalizer ?? new DslSortInputNormalizer($this->jsonDecoder);
     }
 
     /**
@@ -40,7 +43,7 @@ class DslQueryPayloadMapper
         if ($queryKey !== null && $params->has($queryKey)) {
             return $this->wrappedPayload(
                 $this->jsonDecoder->map($params->get($queryKey), true),
-                $inputMap
+                $inputMap,
             );
         }
 
@@ -83,20 +86,20 @@ class DslQueryPayloadMapper
         } elseif ($params->has($inputMap->filterKey())) {
             $payload[self::SECTION_FILTER] = $this->fieldMap(
                 self::SECTION_FILTER,
-                $params->get($inputMap->filterKey())
+                $params->get($inputMap->filterKey()),
             );
         }
 
         if ($params->has($inputMap->betweenKey())) {
             $payload[self::SECTION_BETWEEN] = $this->fieldMap(
                 self::SECTION_BETWEEN,
-                $params->get($inputMap->betweenKey())
+                $params->get($inputMap->betweenKey()),
             );
         }
 
         if ($params->has($inputMap->sortKey())) {
             $payload[self::SECTION_SORT] = $this->sortInputNormalizer->normalize(
-                $params->get($inputMap->sortKey())
+                $params->get($inputMap->sortKey()),
             );
         }
 
@@ -129,7 +132,7 @@ class DslQueryPayloadMapper
         $this->putSection(
             $payload,
             $sectionName,
-            $this->sectionValue($sectionName, $params->get($externalKey))
+            $this->sectionValue($sectionName, $params->get($externalKey)),
         );
     }
 

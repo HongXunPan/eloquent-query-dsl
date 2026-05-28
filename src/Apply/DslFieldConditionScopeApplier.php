@@ -42,7 +42,7 @@ class DslFieldConditionScopeApplier
             $relation = $definition->relationFor($entity);
             if ($relation === null) {
                 throw DslQueryDslDefinitionException::fromMessage(
-                    'query dsl relation 未配置映射：' . $entity
+                    'query dsl relation 未配置映射：' . $entity,
                 );
             }
 

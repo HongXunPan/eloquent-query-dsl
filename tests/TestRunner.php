@@ -2,16 +2,15 @@
 
 declare(strict_types=1);
 
-use HongXunPan\EloquentQueryDsl\Package;
 use HongXunPan\EloquentQueryDsl\Condition\DslFilterCondition;
 use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
+use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
-use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterItem;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
 use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
@@ -20,6 +19,7 @@ use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslKernel;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
+use HongXunPan\EloquentQueryDsl\Package;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
@@ -57,6 +57,9 @@ $definition = DslQueryDefinition::make('activity')
     ->defaultSort('updated_at', 'DESC')
     ->strict();
 $statusFilterDefinition = $definition->getSection('filter')?->field('activity.status');
+if ($statusFilterDefinition === null) {
+    throw new RuntimeException('测试定义缺少 activity.status filter 字段');
+}
 $filterValue = DslFilterValue::fromDefinition($statusFilterDefinition, ['published']);
 $filterValues = new DslFilterValues();
 $filterValues->put($filterValue);
@@ -65,18 +68,18 @@ $pageInput = DslPageInput::fromRaw(['page' => '2', 'limit' => '15']);
 $paginationRequest = DslPaginationRequest::fromPageInput($pageInput);
 $boundedPaginationRequest = DslPaginationRequest::fromPageInput(
     DslPageInput::fromRaw(['page' => '1', 'limit' => '999']),
-    DslPaginationPolicy::default()->withMaxLimit(50)
+    DslPaginationPolicy::default()->withMaxLimit(50),
 );
 $filterSectionApplier = new DslFilterSectionApplier();
 $filterConditions = $filterSectionApplier->conditions(
     DslQueryDefinition::make('activity')->allowFilter(['status']),
-    DslQueryInput::fromRaw(['filter' => ['status' => 'published']])
+    DslQueryInput::fromRaw(['filter' => ['status' => 'published']]),
 );
 $filterRuleWithoutNormalizerThrows = false;
 try {
     $filterSectionApplier->conditions(
         DslQueryDefinition::make('activity')->allowFilter(['status' => 'string']),
-        DslQueryInput::fromRaw(['filter' => ['status' => 'published']])
+        DslQueryInput::fromRaw(['filter' => ['status' => 'published']]),
     );
 } catch (DslQueryDslDefinitionException $exception) {
     $filterRuleWithoutNormalizerThrows = str_contains($exception->getMessage(), 'filter normalizer');
@@ -84,7 +87,7 @@ try {
 $filterItem = new DslNormalizedFilterItem('status', ['published']);
 $filterSet = DslNormalizedFilterSet::success(
     ['status' => 'published'],
-    ['status' => $filterItem]
+    ['status' => $filterItem],
 );
 $failureSet = DslNormalizedFilterSet::failure(['query.filter 参数错误']);
 $inputMap = DslInputMap::make()

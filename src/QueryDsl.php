@@ -24,6 +24,9 @@ use Illuminate\Database\Eloquent\Builder;
  */
 class QueryDsl
 {
+    /**
+     * @var array<string, mixed>
+     */
     private array $params = [];
     private ?DslInputMap $inputMap = null;
     private ?DslInputParser $inputParser = null;
@@ -32,7 +35,7 @@ class QueryDsl
 
     private function __construct(
         private Builder $builder,
-        private DslQueryDefinition $definition
+        private DslQueryDefinition $definition,
     ) {
     }
 
@@ -90,7 +93,7 @@ class QueryDsl
             $this->definition,
             $inputParser->queryInput($this->params, $inputMap),
             $inputParser->pageInput($this->params, $inputMap),
-            $this->paginationPolicy
+            $this->paginationPolicy,
         );
 
         $this->kernel()->applyContext($this->builder, $context);

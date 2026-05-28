@@ -31,7 +31,7 @@ Assert::same(['status' => 'published'], $defaultQueryInput->get('filter')?->valu
 Assert::same(
     [['field' => 'published_at', 'order' => 'desc']],
     $defaultQueryInput->get('sort')?->value(),
-    '默认 query.sort 字段 map 应转换为排序列表'
+    '默认 query.sort 字段 map 应转换为排序列表',
 );
 Assert::same('2', $defaultPageInput->pageValue(), '默认 page.page 应成功读取');
 Assert::same('15', $defaultPageInput->limitValue(), '默认 page.limit 应成功读取');
@@ -48,7 +48,7 @@ Assert::same(['status' => 'draft'], $jsonQueryInput->get('filter')?->value(), 'J
 Assert::same(
     [['field' => 'updated_at', 'order' => 'desc']],
     $jsonQueryInput->get('sort')?->value(),
-    'JSON query.sort 字符串简写应成功解析'
+    'JSON query.sort 字符串简写应成功解析',
 );
 Assert::same('3', $jsonPageInput->pageValue(), 'JSON page.page 应成功解析');
 Assert::same('50', $jsonPageInput->limitValue(), 'JSON page.limit 应成功解析');
@@ -75,7 +75,7 @@ Assert::same(['status' => 'published'], $arrayQueryInput->get('filter')?->value(
 Assert::same(
     [['field' => 'published_at', 'order' => 'desc']],
     $arrayQueryInput->get('sort')?->value(),
-    '自定义 order_by 字段 map 应映射为 sort 列表'
+    '自定义 order_by 字段 map 应映射为 sort 列表',
 );
 Assert::same('4', $arrayPageInput->pageValue(), '自定义顶层 page 标量应映射为 page.page');
 Assert::same('30', $arrayPageInput->limitValue(), '自定义 per_page 应映射为 page.limit');
@@ -98,12 +98,12 @@ Assert::same(['keyword' => '校友会'], $flatQueryInput->get('search')?->value(
 Assert::same(
     ['status' => 'published', 'category' => 'news'],
     $flatQueryInput->get('filter')?->value(),
-    'flat where_ 前缀应映射为 filter 字段 map'
+    'flat where_ 前缀应映射为 filter 字段 map',
 );
 Assert::same(
     [['field' => 'published_at', 'order' => 'desc']],
     $flatQueryInput->get('sort')?->value(),
-    'flat sort 字符串简写应映射为 sort 列表'
+    'flat sort 字符串简写应映射为 sort 列表',
 );
 
 $wrappedCustomMap = DslInputMap::make()
@@ -121,33 +121,33 @@ Assert::same(['status' => 'draft'], $wrappedCustomQueryInput->get('filter')?->va
 Assert::same(
     [['field' => 'updated_at', 'order' => 'asc']],
     $wrappedCustomQueryInput->get('sort')?->value(),
-    '包裹协议内 order_by 应映射为 sort'
+    '包裹协议内 order_by 应映射为 sort',
 );
 
 Assert::throws(
-    fn() => $parser->queryInput(['query' => '[1,2]'], DslInputMap::make()),
+    fn () => $parser->queryInput(['query' => '[1,2]'], DslInputMap::make()),
     DslQueryDslException::class,
-    'query格式错误'
+    'query格式错误',
 );
 Assert::throws(
-    fn() => $parser->queryInput(['where' => '{"status":'], $arrayMap),
+    fn () => $parser->queryInput(['where' => '{"status":'], $arrayMap),
     DslQueryDslException::class,
-    'query.filter格式错误'
+    'query.filter格式错误',
 );
 Assert::throws(
-    fn() => $parser->queryInput(['where' => '[1,2]'], $arrayMap),
+    fn () => $parser->queryInput(['where' => '[1,2]'], $arrayMap),
     DslQueryDslException::class,
-    'query.filter格式错误'
+    'query.filter格式错误',
 );
 Assert::throws(
-    fn() => $parser->queryInput(['q' => ['filter' => [], 'where' => []]], $wrappedCustomMap),
+    fn () => $parser->queryInput(['q' => ['filter' => [], 'where' => []]], $wrappedCustomMap),
     DslQueryDslException::class,
-    'query格式错误'
+    'query格式错误',
 );
 Assert::throws(
-    fn() => DslInputMap::make()->flatInput()->filterPrefix(''),
+    fn () => DslInputMap::make()->flatInput()->filterPrefix(''),
     DslQueryDslException::class,
-    'filter prefix不能为空'
+    'filter prefix不能为空',
 );
 
 echo "Eloquent Query DSL input parser regression 通过\n";

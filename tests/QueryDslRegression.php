@@ -75,7 +75,7 @@ final class QueryDslEntryRegression
             ->allowFilter(['status'])
             ->allowSort(['id']);
 
-        $parser = new class implements DslInputParser {
+        $parser = new class () implements DslInputParser {
             public function queryInput(array $params, DslInputMap $inputMap): DslQueryInput
             {
                 return DslQueryInput::fromRaw([

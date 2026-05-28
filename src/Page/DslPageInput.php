@@ -28,11 +28,14 @@ class DslPageInput
         $this->rawExportLimit = $rawExportLimit;
     }
 
+    /**
+     * @param array<string, mixed> $params
+     */
     public static function fromRequestParams(array $params): self
     {
         return self::fromRaw(
             $params['page'] ?? null,
-            $params['export_limit'] ?? null
+            $params['export_limit'] ?? null,
         );
     }
 
@@ -40,7 +43,7 @@ class DslPageInput
     {
         return new self(
             self::decodeRawPage($rawPage),
-            $rawExportLimit
+            $rawExportLimit,
         );
     }
 

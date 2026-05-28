@@ -45,7 +45,7 @@ final class CodeStyleCheck
     {
         $files = [];
         $iterator = new RecursiveIteratorIterator(
-            new RecursiveDirectoryIterator(self::ROOT, FilesystemIterator::SKIP_DOTS)
+            new RecursiveDirectoryIterator(self::ROOT, FilesystemIterator::SKIP_DOTS),
         );
 
         foreach ($iterator as $fileInfo) {
@@ -145,4 +145,3 @@ final class CodeStyleCheck
 }
 
 exit((new CodeStyleCheck())->run());
-

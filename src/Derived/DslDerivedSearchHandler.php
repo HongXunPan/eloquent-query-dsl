@@ -2,8 +2,8 @@
 
 namespace HongXunPan\EloquentQueryDsl\Derived;
 
-use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use Closure;
+use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use Illuminate\Database\Eloquent\Builder;
 use ReflectionFunction;
 

@@ -44,7 +44,7 @@ class DslQueryRequestContext
         array $requestParams = [],
         ?DslQueryInput $queryInput = null,
         ?DslPageInput $pageInput = null,
-        ?DslPaginationPolicy $paginationPolicy = null
+        ?DslPaginationPolicy $paginationPolicy = null,
     ) {
         $this->definition = $definition;
         $this->requestParams = $requestParams;
@@ -59,9 +59,8 @@ class DslQueryRequestContext
     public static function fromRequestParams(
         DslQueryDefinition $definition,
         array $requestParams,
-        ?DslPaginationPolicy $paginationPolicy = null
-    ): self
-    {
+        ?DslPaginationPolicy $paginationPolicy = null,
+    ): self {
         return new self($definition, $requestParams, paginationPolicy: $paginationPolicy);
     }
 
@@ -69,7 +68,7 @@ class DslQueryRequestContext
         DslQueryDefinition $definition,
         DslQueryInput $queryInput,
         ?DslPageInput $pageInput = null,
-        ?DslPaginationPolicy $paginationPolicy = null
+        ?DslPaginationPolicy $paginationPolicy = null,
     ): self {
         return new self($definition, [], $queryInput, $pageInput, $paginationPolicy);
     }
@@ -102,7 +101,7 @@ class DslQueryRequestContext
         if ($this->paginationRequest === null) {
             $this->paginationRequest = DslPaginationRequest::fromPageInput(
                 $this->pageInput(),
-                $this->paginationPolicy
+                $this->paginationPolicy,
             );
         }
 
@@ -121,7 +120,7 @@ class DslQueryRequestContext
         if ($this->filterValues === null) {
             $this->filterValues = $resolver(
                 $this->definition(),
-                $this->queryInput()
+                $this->queryInput(),
             );
         }
 

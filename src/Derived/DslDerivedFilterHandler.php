@@ -2,8 +2,8 @@
 
 namespace HongXunPan\EloquentQueryDsl\Derived;
 
-use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 use Closure;
+use HongXunPan\EloquentQueryDsl\Filter\DslFilterValue;
 use Illuminate\Database\Eloquent\Builder;
 
 /**

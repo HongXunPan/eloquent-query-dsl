@@ -112,6 +112,9 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function allowFields(string $sectionName, array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'allowFields') as $field) {
@@ -121,11 +124,17 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function allowSearch(array $fields): self
     {
         return $this->allowFields('search', $fields);
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function searchRightLike(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'searchRightLike') as $field) {
@@ -144,13 +153,16 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $targetFields
+     */
     public function allowKeywordSearch(string $field, array $targetFields, string $mode = ''): self
     {
         $fieldDefinition = $this->field('search', $field);
         $fieldDefinition->withDerivedSearchBehavior(
             DslKeywordSearchHandler::forFields(
-                $this->keywordSearchTargetFieldPaths($targetFields)
-            )
+                $this->keywordSearchTargetFieldPaths($targetFields),
+            ),
         );
 
         if (trim($mode) !== '') {
@@ -160,6 +172,9 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int|string, string> $fields
+     */
     public function allowFilter(array $fields): self
     {
         foreach ($fields as $key => $value) {
@@ -189,11 +204,17 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function allowBetween(array $fields): self
     {
         return $this->allowFields('between', $fields);
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function allowSort(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'allowSort') as $field) {
@@ -203,6 +224,9 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function sortAscOnly(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'sortAscOnly') as $field) {
@@ -213,6 +237,9 @@ class DslQueryDefinition
         return $this;
     }
 
+    /**
+     * @param array<int, string> $fields
+     */
     public function sortDescOnly(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'sortDescOnly') as $field) {
@@ -234,14 +261,14 @@ class DslQueryDefinition
     public function field(string $sectionName, string $field): DslQueryFieldDefinition
     {
         return $this->section($sectionName)->allowField(
-            DslFieldPath::fromDefinition($field, $this->mainEntity)
+            DslFieldPath::fromDefinition($field, $this->mainEntity),
         );
     }
 
     public function defaultSort(string $field, string $order = DslQueryDefaultSort::ORDER_ASC): self
     {
         $this->appendDefaultSort(
-            DslQueryDefaultSort::forField($field, $this->mainEntity, $order)
+            DslQueryDefaultSort::forField($field, $this->mainEntity, $order),
         );
 
         return $this;
@@ -295,7 +322,7 @@ class DslQueryDefinition
                 '%s 字段未在 allow%s 中声明：%s',
                 $sectionName,
                 ucfirst($sectionName),
-                $fieldPath->canonical()
+                $fieldPath->canonical(),
             ));
         }
 
@@ -312,7 +339,8 @@ class DslQueryDefinition
     }
 
     /**
-     * @return string[]
+     * @param array<int|string, mixed> $fields
+     * @return array<int, string>
      */
     protected function normalizeFieldList(array $fields, string $helperName): array
     {
@@ -334,7 +362,8 @@ class DslQueryDefinition
     }
 
     /**
-     * @return DslFieldPath[]
+     * @param array<int, string> $fields
+     * @return array<int, DslFieldPath>
      */
     protected function keywordSearchTargetFieldPaths(array $fields): array
     {
@@ -345,5 +374,4 @@ class DslQueryDefinition
 
         return $fieldPaths;
     }
-
 }

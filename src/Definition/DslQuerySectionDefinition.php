@@ -67,6 +67,9 @@ class DslQuerySectionDefinition
         return $this->fields;
     }
 
+    /**
+     * @return array<int, string>
+     */
     public function fieldNames(): array
     {
         return array_keys($this->fields);

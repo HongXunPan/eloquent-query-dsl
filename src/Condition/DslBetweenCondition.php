@@ -40,6 +40,8 @@ class DslBetweenCondition extends DslCondition
 
     /**
      * 返回起止值数组，仅作为只读访问便利，不作为内部条件黑盒传递。
+     *
+     * @return array{0: mixed, 1: mixed}
      */
     public function values(): array
     {

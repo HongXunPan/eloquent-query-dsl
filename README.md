@@ -364,6 +364,7 @@ composer validate
 composer test
 composer analyse
 composer cs:check
+composer security:audit
 ```
 
 当前 `composer test` 会执行：
@@ -381,7 +382,7 @@ composer cs:check
 - `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
 - `tests/InputParserRegression.php`：默认输入协议、自定义参数名、JSON / array / flat 输入与异常边界；
 - `tests/QueryDslRegression.php`：`QueryDsl::for(...)->from(...)->apply()` 主入口、`QueryDslResult`、filter values 与 pagination；
-- `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
+- `tests/CoreRegression.php`：脱离业务仓的 Query DSL core regression。
 
 包级 core regression 的标准断言口径是：
 
@@ -407,16 +408,19 @@ composer cs:check
 
 默认矩阵：
 
-- PHP 8.0
-- PHP 8.2
-- PHP 8.3
+- PHP 8.0 + illuminate/database 9
+- PHP 8.1 + illuminate/database 10
+- PHP 8.2 + illuminate/database 11
+- PHP 8.3 + illuminate/database 12
 
 CI 会执行：
 
 ```bash
 composer validate --strict
-composer install --no-interaction --prefer-dist --no-progress
+composer require illuminate/database:<matrix-version> --no-update --no-interaction
+composer update --no-interaction --prefer-dist --no-progress
 composer test
 composer cs:check
+composer security:audit
 composer analyse
 ```

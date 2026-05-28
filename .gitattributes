@@ -3,6 +3,7 @@
 /tests export-ignore
 /vendor export-ignore
 /composer.lock export-ignore
+/.php-cs-fixer.dist.php export-ignore
 /phpstan.neon.dist export-ignore
 /phpunit.xml.dist export-ignore
 /.editorconfig export-ignore

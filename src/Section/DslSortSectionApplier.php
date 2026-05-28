@@ -3,12 +3,12 @@
 namespace HongXunPan\EloquentQueryDsl\Section;
 
 use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
+use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefaultSort;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryFieldDefinition;
-use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefaultSort;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
-use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
+use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Reader\DslItemListReader;
@@ -37,7 +37,7 @@ class DslSortSectionApplier implements DslSectionApplier
     public function __construct(
         ?DslSectionReader $sectionReader = null,
         ?DslItemListReader $itemListReader = null,
-        ?DslFilterSectionApplier $filterSectionApplier = null
+        ?DslFilterSectionApplier $filterSectionApplier = null,
     ) {
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
         $this->itemListReader = $itemListReader ?? new DslItemListReader($this->sectionReader);
@@ -55,7 +55,7 @@ class DslSortSectionApplier implements DslSectionApplier
     {
         return $this->applyExplicitSortFromContext(
             $query,
-            DslQueryRequestContext::fromQueryInput($definition, $input)
+            DslQueryRequestContext::fromQueryInput($definition, $input),
         );
     }
 
@@ -81,7 +81,7 @@ class DslSortSectionApplier implements DslSectionApplier
     {
         $this->applyDefaultSortFromContext(
             $query,
-            DslQueryRequestContext::fromQueryInput($definition, $input)
+            DslQueryRequestContext::fromQueryInput($definition, $input),
         );
     }
 
@@ -134,7 +134,7 @@ class DslSortSectionApplier implements DslSectionApplier
 
             $fieldPath = DslFieldPath::fromInput(
                 $entity === $definition->mainEntity() ? $field : $entity . '.' . $field,
-                $definition->mainEntity()
+                $definition->mainEntity(),
             );
 
             $fieldDefinition = $sectionDefinition->field($fieldPath->canonical());
@@ -174,7 +174,7 @@ class DslSortSectionApplier implements DslSectionApplier
     protected function resolveDerivedDefaultSorts(DslQueryDefinition $definition, DslQueryInput $input): array
     {
         return $this->resolveDerivedDefaultSortsFromContext(
-            DslQueryRequestContext::fromQueryInput($definition, $input)
+            DslQueryRequestContext::fromQueryInput($definition, $input),
         );
     }
 
@@ -205,7 +205,7 @@ class DslSortSectionApplier implements DslSectionApplier
      */
     protected function resolveFieldDerivedDefaultSorts(
         DslQueryFieldDefinition $fieldDefinition,
-        DslFilterValues $filterValues
+        DslFilterValues $filterValues,
     ): array {
         if (!$fieldDefinition->hasDerivedDefaultSortStrategy()) {
             return [];

@@ -67,7 +67,7 @@ final class QueryDslEntryTest extends TestCase
      */
     private function resultIds(Builder $query): array
     {
-        return array_map('intval', $query->pluck($query->getModel()->getKeyName())->all());
+        return array_map('intval', $query->pluck('id')->all());
     }
 }
 

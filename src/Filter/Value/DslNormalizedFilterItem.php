@@ -41,4 +41,3 @@ class DslNormalizedFilterItem
         return $this->normalizedValues !== [];
     }
 }
-

@@ -68,6 +68,9 @@ class DslFilterValues
         return $this->get($field)?->queryValue();
     }
 
+    /**
+     * @return array<int, mixed>
+     */
     public function values(string $field): array
     {
         return $this->get($field)?->values() ?? [];

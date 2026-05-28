@@ -1,5 +1,5 @@
 parameters:
-    level: 3
+    level: 8
     phpVersion: 80020
     paths:
         - src
@@ -7,4 +7,3 @@ parameters:
     excludePaths:
         analyse:
             - vendor
-

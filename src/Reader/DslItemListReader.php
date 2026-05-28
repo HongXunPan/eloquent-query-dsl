@@ -22,6 +22,9 @@ class DslItemListReader
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
     }
 
+    /**
+     * @return array<int, mixed>|null
+     */
     public function read(DslQueryInput $input, string $sectionName): ?array
     {
         $section = $input->get($sectionName);

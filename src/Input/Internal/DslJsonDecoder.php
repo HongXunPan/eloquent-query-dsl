@@ -70,17 +70,23 @@ class DslJsonDecoder
      */
     public function assertMap(array $data, bool $queryError): array
     {
+        $map = [];
         foreach ($data as $key => $_) {
             if (!is_string($key) || trim($key) === '') {
                 throw $queryError
                     ? DslQueryDslException::invalidQueryFormat()
                     : DslQueryDslException::invalidPageFormat();
             }
+
+            $map[$key] = $data[$key];
         }
 
-        return $data;
+        return $map;
     }
 
+    /**
+     * @param array<mixed, mixed> $data
+     */
     public function isListArray(array $data): bool
     {
         $index = 0;

@@ -56,7 +56,7 @@ class QueryDslKernel
     {
         return $this->applyContext(
             $query,
-            DslQueryRequestContext::fromQueryInput($definition, $input)
+            DslQueryRequestContext::fromQueryInput($definition, $input),
         );
     }
 

@@ -24,7 +24,7 @@ final class DslPaginationPolicy
         private int $maxExportLimit = self::DEFAULT_MAX_EXPORT_LIMIT,
         private bool $exportLimitEnabled = true,
         private bool $numericStringEnabled = true,
-        private bool $floatEnabled = false
+        private bool $floatEnabled = false,
     ) {
         $this->assertPositive($this->defaultPage, 'defaultPage');
         $this->assertPositive($this->defaultLimit, 'defaultLimit');
@@ -203,7 +203,7 @@ final class DslPaginationPolicy
     {
         if ($value <= 0) {
             throw DslQueryDslDefinitionException::fromMessage(
-                'query dsl pagination policy ' . $name . ' 必须为正整数'
+                'query dsl pagination policy ' . $name . ' 必须为正整数',
             );
         }
     }

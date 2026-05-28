@@ -101,7 +101,7 @@ class DslQueryFieldDefinition
     public function withDerivedFilterHandler(callable $handler): self
     {
         return $this->withDerivedFilterBehavior(
-            DslDerivedFilterHandler::make($handler)
+            DslDerivedFilterHandler::make($handler),
         );
     }
 
@@ -130,7 +130,7 @@ class DslQueryFieldDefinition
     public function withDerivedSearchHandler(callable $handler): self
     {
         return $this->withDerivedSearchBehavior(
-            DslDerivedSearchHandler::make($handler)
+            DslDerivedSearchHandler::make($handler),
         );
     }
 

@@ -15,9 +15,11 @@ use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
  */
 class DslPagePayloadMapper
 {
-    public function __construct(private ?DslJsonDecoder $jsonDecoder = null)
+    private DslJsonDecoder $jsonDecoder;
+
+    public function __construct(?DslJsonDecoder $jsonDecoder = null)
     {
-        $this->jsonDecoder ??= new DslJsonDecoder();
+        $this->jsonDecoder = $jsonDecoder ?? new DslJsonDecoder();
     }
 
     public function toPageInput(DslInputParams $params, DslInputMap $inputMap): DslPageInput

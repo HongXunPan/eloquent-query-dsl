@@ -28,7 +28,7 @@ class DslBetweenSectionApplier implements DslSectionApplier
     public function __construct(
         ?DslSectionReader $sectionReader = null,
         ?DslFieldMapReader $fieldMapReader = null,
-        ?DslFieldConditionScopeApplier $scopeApplier = null
+        ?DslFieldConditionScopeApplier $scopeApplier = null,
     ) {
         $this->sectionReader = $sectionReader ?? new DslSectionReader();
         $this->fieldMapReader = $fieldMapReader ?? new DslFieldMapReader($this->sectionReader);
@@ -43,7 +43,7 @@ class DslBetweenSectionApplier implements DslSectionApplier
         $this->scopeApplier->apply($query, $definition, $conditions, function (Builder $query, DslBetweenCondition $condition): void {
             $query->whereBetween(
                 $query->qualifyColumn($condition->fieldPath()->field()),
-                $condition->values()
+                $condition->values(),
             );
         });
     }

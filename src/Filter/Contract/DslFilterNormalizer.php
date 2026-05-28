@@ -17,6 +17,5 @@ interface DslFilterNormalizer
      * @param array<string, string> $rules 以 payload field 为 key 的规则集合
      * @param array<string, mixed> $options 归一化实现可选配置
      */
-    public function normalize(array $payload, array $rules, array $options = array()): DslNormalizedFilterSet;
+    public function normalize(array $payload, array $rules, array $options = []): DslNormalizedFilterSet;
 }
-

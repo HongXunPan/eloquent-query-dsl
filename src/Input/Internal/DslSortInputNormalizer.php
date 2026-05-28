@@ -13,9 +13,11 @@ use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
  */
 class DslSortInputNormalizer
 {
-    public function __construct(private ?DslJsonDecoder $jsonDecoder = null)
+    private DslJsonDecoder $jsonDecoder;
+
+    public function __construct(?DslJsonDecoder $jsonDecoder = null)
     {
-        $this->jsonDecoder ??= new DslJsonDecoder();
+        $this->jsonDecoder = $jsonDecoder ?? new DslJsonDecoder();
     }
 
     public function normalize(mixed $value): mixed

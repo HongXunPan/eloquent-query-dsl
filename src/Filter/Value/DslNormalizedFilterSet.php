@@ -103,4 +103,3 @@ class DslNormalizedFilterSet
         return $this->items;
     }
 }
-
