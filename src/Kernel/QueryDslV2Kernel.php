@@ -52,8 +52,17 @@ class QueryDslV2Kernel
      */
     public function apply(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): Builder
     {
-        $context = DslQueryRequestContext::fromQueryInput($definition, $input);
+        return $this->applyContext(
+            $query,
+            DslQueryRequestContext::fromQueryInput($definition, $input)
+        );
+    }
 
+    /**
+     * 将 V2 请求上下文应用到 Builder。
+     */
+    public function applyContext(Builder $query, DslQueryRequestContext $context): Builder
+    {
         foreach ($this->sectionAppliers() as $applier) {
             $applier->apply($query, $context);
         }

@@ -27,11 +27,9 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象、输入协议解析能力和包级 regression；下一步会补齐更适合开源使用方的主入口。
+当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象、输入协议解析能力、开源友好主入口和包级 regression。
 
-## 推荐接入方式（主入口 public API 草案）
-
-> 注意：本节中的 `QueryDsl / QueryDslResult` 仍是下一批即将落地的主入口草案，用于先固定开源使用方视角；`DslInputMap / DslInputParser / DefaultDslInputParser` 输入解析能力已经落地。
+## 推荐接入方式
 
 默认场景下，使用方不应手动理解和组装 section applier / kernel / context，而是通过一个直观主入口完成查询应用：
 
@@ -198,6 +196,7 @@ shared 包负责：
 - Filter value facts（不包含 backend validator bridge）
 - Reader / Apply / Section / Kernel
 - `DslInputMap / DslInputParser / DefaultDslInputParser`
+- `QueryDsl / QueryDslResult`
 - 包级 core regression
 
 其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
@@ -212,7 +211,7 @@ shared 包负责：
 
 这些对象属于包内 internal 协作层，README 推荐使用方仍优先依赖 `DslInputMap / DslInputParser / DefaultDslInputParser`。
 
-后续批次进入 public API 实现时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 `QueryDslFilterValidator`、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
+后续批次进入 backend 反接时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 `QueryDslFilterValidator`、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
 
 ## 命名空间
 
@@ -243,6 +242,7 @@ composer test
 
 - `composer test:skeleton` / `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
 - `composer test:input-parser` / `tests/InputParserRegression.php`：默认输入协议、自定义参数名、JSON / array / flat 输入与异常边界；
+- `composer test:query-dsl` / `tests/QueryDslRegression.php`：`QueryDsl::for(...)->from(...)->apply()` 主入口、`QueryDslResult`、filter values 与 pagination；
 - `composer test:core` / `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
 
 包级 core regression 的标准断言口径是：

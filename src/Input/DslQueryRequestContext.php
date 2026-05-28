@@ -117,4 +117,9 @@ class DslQueryRequestContext
 
         return $this->filterValues;
     }
+
+    public function filterValues(): ?DslFilterValues
+    {
+        return $this->filterValues;
+    }
 }

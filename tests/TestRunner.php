@@ -21,6 +21,8 @@ use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
+use HongXunPan\EloquentQueryDsl\QueryDsl;
+use HongXunPan\EloquentQueryDsl\QueryDslResult;
 use HongXunPan\EloquentQueryDsl\Section\DslFilterSectionApplier;
 
 $autoload = __DIR__ . '/../vendor/autoload.php';
@@ -114,6 +116,8 @@ $assertions = [
     'input map 可声明自定义参数名' => $inputMap->filterKey() === 'where' && $inputMap->sortKey() === 'order_by',
     '默认 input parser 可映射自定义 filter' => $mappedInput->get('filter')?->value() === ['status' => 'published'],
     '默认 input parser 可映射自定义 sort' => $mappedInput->get('sort')?->value() === [['field' => 'updated_at', 'order' => 'desc']],
+    'QueryDsl 主入口可加载' => class_exists(QueryDsl::class),
+    'QueryDslResult 可加载' => class_exists(QueryDslResult::class),
 ];
 
 foreach ($assertions as $message => $passed) {
