@@ -40,11 +40,21 @@
             "@test:input-parser",
             "@test:query-dsl",
             "@test:core"
+        ],
+        "analyse": "phpstan analyse --configuration=phpstan.neon.dist --no-progress --error-format=table",
+        "cs:check": "@php scripts/check_code_style.php",
+        "quality": [
+            "@test",
+            "@analyse",
+            "@cs:check"
         ]
     },
     "autoload-dev": {
         "psr-4": {
             "HongXunPan\\EloquentQueryDsl\\Tests\\": "tests/"
         }
+    },
+    "require-dev": {
+        "phpstan/phpstan": "^1.12"
     }
 }

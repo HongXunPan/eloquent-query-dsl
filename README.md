@@ -27,7 +27,14 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象、输入协议解析能力、开源友好主入口和包级 regression。
+当前包处于 **pre-1.0 开源预备发布阶段**：已建立 Composer 包、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已提供主要 QueryDSL V2 core 对象、输入协议解析能力、开源友好主入口和包级 regression。正式 tag / Packagist 发布前仍会继续补齐发布说明、协作文件与质量门禁。
+
+相关项目文件：
+
+- [CHANGELOG](./CHANGELOG.md)
+- [贡献说明](./CONTRIBUTING.md)
+- [安全政策](./SECURITY.md)
+- [MIT License](./LICENSE)
 
 ## 推荐接入方式
 
@@ -199,6 +206,21 @@ shared 包负责：
 - `QueryDsl / QueryDslResult`
 - 包级 core regression
 
+### Public API 承诺
+
+pre-1.0 阶段推荐使用方优先依赖以下入口：
+
+- `QueryDsl`
+- `QueryDslResult`
+- `Definition\DslQueryDefinition`
+- `Input\DslInputMap`
+- `Input\Contract\DslInputParser`
+- `Filter\Contract\DslFilterNormalizer`
+- `Filter\DslFilterValues`
+- `Page\DslPaginationRequest`
+
+`Reader / Apply / Section / Kernel / Input\Internal` 下的对象主要承接包内协作，当前不作为稳定 public API 承诺；如需自定义深层行为，优先通过 `QueryDsl`、`DslInputParser`、`DslInputMap` 与 `DslFilterNormalizer` 扩展。
+
 其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
 
 输入解析层已拆成较小的内部职责对象：
@@ -221,13 +243,13 @@ HongXunPan\EloquentQueryDsl\
 
 ## 安装
 
-正式发布后预计使用：
+正式发布到 Packagist 后使用：
 
 ```bash
 composer require hongxunpan/eloquent-query-dsl
 ```
 
-当前阶段尚未发布 tag，业务仓不得直接把本 skeleton 当作已稳定能力接入。
+正式 tag 发布前，可通过 Git 仓库或 path repository 做开发期试用；生产项目建议锁定明确 commit / tag，不直接依赖浮动 `dev-main`。
 
 ## 最小验证
 
@@ -236,6 +258,8 @@ composer require hongxunpan/eloquent-query-dsl
 ```bash
 composer validate
 composer test
+composer analyse
+composer cs:check
 ```
 
 当前 `composer test` 会执行：
@@ -276,7 +300,9 @@ composer test
 CI 会执行：
 
 ```bash
-composer validate --no-check-publish
+composer validate --strict
 composer install --no-interaction --prefer-dist --no-progress
 composer test
+composer cs:check
+composer analyse
 ```

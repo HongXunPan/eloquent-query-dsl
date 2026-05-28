@@ -3,10 +3,9 @@
 namespace HongXunPan\EloquentQueryDsl;
 
 /**
- * Eloquent Query DSL 包骨架标识。
+ * Eloquent Query DSL 包标识。
  *
- * 当前类只用于 skeleton 阶段确认命名空间与 autoload 可用；
- * 真正的 QueryDSL core 会在后续批次按 shared stable 边界逐步平移。
+ * 当前类用于暴露包名常量，并为最小 autoload / 安装探针提供稳定入口。
  */
 final class Package
 {
@@ -17,4 +16,3 @@ final class Package
         return self::NAME;
     }
 }
-

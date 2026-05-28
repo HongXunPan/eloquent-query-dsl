@@ -1,0 +1,10 @@
+parameters:
+    level: 3
+    phpVersion: 80020
+    paths:
+        - src
+        - tests
+    excludePaths:
+        analyse:
+            - vendor
+

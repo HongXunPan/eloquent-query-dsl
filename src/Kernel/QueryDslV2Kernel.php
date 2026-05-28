@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Builder;
  *
  * 内核只负责固定 V2 入口与 section applier 执行顺序；
  * 具体 section 的解析、条件生成与 Builder 应用由各自 applier 承担。
- * 业务侧默认通过 OrmQueryDslV2Service 的受保护 helper 间接使用，不直接依赖具体 section 细节。
+ * 使用侧默认通过 QueryDsl 主入口间接使用，不直接依赖具体 section 细节。
  */
 class QueryDslV2Kernel
 {
