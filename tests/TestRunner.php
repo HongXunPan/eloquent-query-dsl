@@ -14,6 +14,9 @@ use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterItem;
 use HongXunPan\EloquentQueryDsl\Filter\Value\DslNormalizedFilterSet;
+use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
+use HongXunPan\EloquentQueryDsl\Input\DefaultDslInputParser;
+use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslV2Kernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
@@ -75,6 +78,15 @@ $filterSet = DslNormalizedFilterSet::success(
     ['status' => $filterItem]
 );
 $failureSet = DslNormalizedFilterSet::failure(['query.filter 参数错误']);
+$inputMap = DslInputMap::make()
+    ->filter('where')
+    ->sort('order_by')
+    ->arrayInput();
+$inputParser = new DefaultDslInputParser();
+$mappedInput = $inputParser->queryInput([
+    'where' => ['status' => 'published'],
+    'order_by' => ['updated_at' => 'desc'],
+], $inputMap);
 
 $assertions = [
     '包名常量正确' => Package::name() === 'hongxunpan/eloquent-query-dsl',
@@ -98,6 +110,10 @@ $assertions = [
     'filter set 可按字段读取归一化结果' => $filterSet->item('status')?->normalizedValues() === ['published'],
     'filter set 空字段不返回 item' => $filterSet->item('') === null,
     'filter failure set 保留错误信息' => $failureSet->isFailed() && $failureSet->errors() === ['query.filter 参数错误'],
+    'input parser 契约可加载' => interface_exists(DslInputParser::class),
+    'input map 可声明自定义参数名' => $inputMap->filterKey() === 'where' && $inputMap->sortKey() === 'order_by',
+    '默认 input parser 可映射自定义 filter' => $mappedInput->get('filter')?->value() === ['status' => 'published'],
+    '默认 input parser 可映射自定义 sort' => $mappedInput->get('sort')?->value() === [['field' => 'updated_at', 'order' => 'desc']],
 ];
 
 foreach ($assertions as $message => $passed) {

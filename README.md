@@ -27,11 +27,11 @@ DSL 是 Domain-Specific Language（领域特定语言）的缩写。
 
 使用本包后，业务仓可以把“允许怎么查”声明出来，把“如何解析并应用到 Eloquent Builder”交给统一内核处理。
 
-当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象和包级 core regression；下一步会补齐更适合开源使用方的主入口与输入协议扩展。
+当前包处于 **开源预备阶段**：已建立 Composer 包骨架、命名空间、边界说明、filter normalize 的中性契约与 DTO，并已平移主要 QueryDSL V2 core 对象、输入协议解析能力和包级 regression；下一步会补齐更适合开源使用方的主入口。
 
-## 推荐接入方式（下一批 public API 草案）
+## 推荐接入方式（主入口 public API 草案）
 
-> 注意：本节是下一批即将落地的推荐 public API 草案，用于先固定开源使用方视角；当前已可用能力仍以底层 core 对象、section applier 与 `QueryDslV2Kernel` 为主。
+> 注意：本节中的 `QueryDsl / QueryDslResult` 仍是下一批即将落地的主入口草案，用于先固定开源使用方视角；`DslInputMap / DslInputParser / DefaultDslInputParser` 输入解析能力已经落地。
 
 默认场景下，使用方不应手动理解和组装 section applier / kernel / context，而是通过一个直观主入口完成查询应用：
 
@@ -76,7 +76,7 @@ $params = [
 
 ### 自定义参数名
 
-如果你的项目参数不叫 `filter`，或者分页参数不是 `page.limit`，可以通过 `DslInputMap` 描述外部参数名：
+如果你的项目参数不叫 `filter`，或者分页参数不是 `page.limit`，可以通过已落地的 `DslInputMap` 描述外部参数名：
 
 ```php
 use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
@@ -197,9 +197,20 @@ shared 包负责：
 - Definition / Derived / Input / Page
 - Filter value facts（不包含 backend validator bridge）
 - Reader / Apply / Section / Kernel
+- `DslInputMap / DslInputParser / DefaultDslInputParser`
 - 包级 core regression
 
 其中 filter section 已改接包内中性的 `DslFilterNormalizer`，不会直接引用 backend 的 validator bridge。
+
+输入解析层已拆成较小的内部职责对象：
+
+- `DslInputParams`：外部参数读取；
+- `DslJsonDecoder`：JSON 解码与 map 类型判断；
+- `DslQueryPayloadMapper`：query section 映射；
+- `DslPagePayloadMapper`：page / limit / export_limit 映射；
+- `DslSortInputNormalizer`：sort 多写法归一化。
+
+这些对象属于包内 internal 协作层，README 推荐使用方仍优先依赖 `DslInputMap / DslInputParser / DefaultDslInputParser`。
 
 后续批次进入 public API 实现时，必须继续沿用包内中性的 filter normalize contract / DTO，避免把业务项目的 `QueryDslFilterValidator`、异常翻译、分页响应结构或历史 compat bridge 反向带入共享包。
 
@@ -231,6 +242,7 @@ composer test
 当前 `composer test` 会执行：
 
 - `composer test:skeleton` / `tests/TestRunner.php`：包骨架、基础对象与中性 filter DTO 最小断言；
+- `composer test:input-parser` / `tests/InputParserRegression.php`：默认输入协议、自定义参数名、JSON / array / flat 输入与异常边界；
 - `composer test:core` / `tests/CoreRegression.php`：脱离业务仓的 QueryDSL core regression。
 
 包级 core regression 的标准断言口径是：

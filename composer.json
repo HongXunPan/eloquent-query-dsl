@@ -32,9 +32,11 @@
     },
     "scripts": {
         "test:skeleton": "@php tests/TestRunner.php",
+        "test:input-parser": "@php tests/InputParserRegression.php",
         "test:core": "@php tests/CoreRegression.php",
         "test": [
             "@test:skeleton",
+            "@test:input-parser",
             "@test:core"
         ]
     },
