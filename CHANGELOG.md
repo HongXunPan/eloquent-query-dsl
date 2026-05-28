@@ -60,6 +60,11 @@
 - 增加 `composer cs:fix`，用于本地自动修复 PHP 代码风格。
 - 增加 `composer security:audit`，用于依赖安全审计。
 - 增加 `composer quality`，串联 test / analyse / cs:check / security:audit。
+- 增加专业化 docs 入口：
+  - `docs/公开契约与稳定性承诺.zh-CN.md`；
+  - `docs/查询能力矩阵.zh-CN.md`；
+  - `docs/高价值 canonical 示例.zh-CN.md`；
+  - `docs/发布检查清单.zh-CN.md`。
 
 ### Changed
 
@@ -73,6 +78,7 @@
 - 明确 shared 包只返回中性查询事实，不承接 HTTP response、异常翻译、分页执行或 `{ page, list }` 响应结构。
 - `DslPaginationRequest` 现在通过 `DslPaginationPolicy` 输出受限分页事实，默认限制 `limit` 与 `export_limit` 上限。
 - CI 已接入 `composer validate --strict`、`composer test`、`composer cs:check`、`composer security:audit`、PHPStan level 8 与 Illuminate 版本矩阵。
+- README 改为入口级专业说明，详细契约、能力矩阵与 canonical 示例下沉到 `docs/`。
 
 ### Not included
 

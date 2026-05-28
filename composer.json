@@ -1,6 +1,6 @@
 {
     "name": "hongxunpan/eloquent-query-dsl",
-    "description": "Reusable Eloquent query DSL (Domain-Specific Language) engine for list search, filter, between, sort and pagination",
+    "description": "Adapter-friendly Eloquent query DSL core for list search, filters, sorting, and pagination facts",
     "type": "library",
     "license": "MIT",
     "homepage": "https://github.com/HongXunPan/eloquent-query-dsl",
