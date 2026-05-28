@@ -103,7 +103,8 @@ final class QueryDslEntryRegression
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     private function normalizeSql(Builder $query): string
     {

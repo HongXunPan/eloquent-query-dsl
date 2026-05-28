@@ -19,8 +19,11 @@ use Illuminate\Database\Eloquent\Model;
 class DslFieldConditionScopeApplier
 {
     /**
-     * @param Builder<Model> $query
-     * @param DslCondition[] $conditions
+     * @template TModel of Model
+     * @template TCondition of DslCondition
+     * @param Builder<TModel> $query
+     * @param array<int, TCondition> $conditions
+     * @param callable(Builder<TModel>, TCondition): void $apply
      */
     public function apply(Builder $query, DslQueryDefinition $definition, array $conditions, callable $apply): void
     {
@@ -51,7 +54,7 @@ class DslFieldConditionScopeApplier
             $query->whereHas(
                 $relation->relation(),
                 /**
-                 * @param Builder<Model> $query
+                 * @param Builder<TModel> $query
                  */
                 function (Builder $query) use ($conditionsInRelation, $apply): void {
                     foreach ($conditionsInRelation as $condition) {

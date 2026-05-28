@@ -53,8 +53,9 @@ class QueryDslKernel
     /**
      * 将查询输入按 Definition 应用到 Builder。
      *
-     * @param Builder<Model> $query
-     * @return Builder<Model>
+     * @template TModel of Model
+     * @param Builder<TModel> $query
+     * @return Builder<TModel>
      */
     public function apply(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): Builder
     {
@@ -67,8 +68,9 @@ class QueryDslKernel
     /**
      * 将请求上下文应用到 Builder。
      *
-     * @param Builder<Model> $query
-     * @return Builder<Model>
+     * @template TModel of Model
+     * @param Builder<TModel> $query
+     * @return Builder<TModel>
      */
     public function applyContext(Builder $query, DslQueryRequestContext $context): Builder
     {

@@ -13,7 +13,8 @@ use Illuminate\Database\Eloquent\Model;
 interface DslDerivedFilterRule
 {
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query): void;
 }

@@ -46,7 +46,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
@@ -56,7 +57,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     protected function applyExplicitSort(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): bool
     {
@@ -67,7 +69,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     protected function applyExplicitSortFromContext(Builder $query, DslQueryRequestContext $context): bool
     {
@@ -88,7 +91,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function applyDefaultSort(Builder $query, DslQueryDefinition $definition, DslQueryInput $input): void
     {
@@ -99,7 +103,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     protected function applyDefaultSortFromContext(Builder $query, DslQueryRequestContext $context): void
     {
@@ -171,7 +176,8 @@ class DslSortSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      * @param DslQueryDefaultSort[] $sorts
      */
     protected function applySorts(Builder $query, array $sorts): void

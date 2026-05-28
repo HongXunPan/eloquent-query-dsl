@@ -497,7 +497,8 @@ final class QueryDslCoreRegression
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     private function normalizeSql(Builder $query): string
     {
@@ -513,7 +514,7 @@ final class QueryDslCoreRegressionArticle extends Model
     protected $guarded = [];
 
     /**
-     * @return HasMany<QueryDslCoreRegressionComment, QueryDslCoreRegressionArticle>
+     * @return HasMany<QueryDslCoreRegressionComment, $this>
      */
     public function comments(): HasMany
     {

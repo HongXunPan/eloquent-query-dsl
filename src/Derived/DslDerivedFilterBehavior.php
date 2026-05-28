@@ -15,7 +15,8 @@ use Illuminate\Database\Eloquent\Model;
 interface DslDerivedFilterBehavior
 {
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query, DslFilterValue $filterValue): void;
 }

@@ -62,7 +62,8 @@ final class Assert
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      * @param array<int, int> $expectedIds
      */
     public static function resultIds(Builder $query, array $expectedIds, string $message): void

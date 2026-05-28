@@ -37,7 +37,8 @@ class DslBetweenSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
@@ -49,7 +50,7 @@ class DslBetweenSectionApplier implements DslSectionApplier
             $definition,
             $conditions,
             /**
-             * @param Builder<Model> $query
+             * @param Builder<TModel> $query
              */
             function (Builder $query, DslBetweenCondition $condition): void {
                 $query->whereBetween(

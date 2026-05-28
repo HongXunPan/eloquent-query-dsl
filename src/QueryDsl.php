@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @template TModel of Model
+ *
  * QueryDSL 推荐主入口。
  *
  * 该入口负责中性的输入解析、section wiring 与请求上下文编排；
@@ -29,30 +31,43 @@ class QueryDsl
      * @var array<string, mixed>
      */
     private array $params = [];
+
+    /**
+     * @var Builder<TModel>
+     */
+    private Builder $builder;
+
+    private DslQueryDefinition $definition;
     private ?DslInputMap $inputMap = null;
     private ?DslInputParser $inputParser = null;
     private ?DslFilterNormalizer $filterNormalizer = null;
     private ?DslPaginationPolicy $paginationPolicy = null;
 
     /**
-     * @param Builder<Model> $builder
+     * @param Builder<TModel> $builder
      */
-    private function __construct(
-        private Builder $builder,
-        private DslQueryDefinition $definition,
-    ) {
+    private function __construct(Builder $builder, DslQueryDefinition $definition)
+    {
+        $this->builder = $builder;
+        $this->definition = $definition;
     }
 
     /**
-     * @param Builder<Model> $builder
+     * @template TBuilderModel of Model
+     * @param Builder<TBuilderModel> $builder
+     * @return self<TBuilderModel>
      */
     public static function for(Builder $builder, DslQueryDefinition $definition): self
     {
-        return new self($builder, $definition);
+        /** @var self<TBuilderModel> $queryDsl */
+        $queryDsl = new self($builder, $definition);
+
+        return $queryDsl;
     }
 
     /**
      * @param array<string, mixed> $params
+     * @return self<TModel>
      */
     public function from(array $params, ?DslInputMap $inputMap = null): self
     {
@@ -64,6 +79,9 @@ class QueryDsl
         return $this;
     }
 
+    /**
+     * @return self<TModel>
+     */
     public function inputMap(DslInputMap $inputMap): self
     {
         $this->inputMap = $inputMap;
@@ -71,6 +89,9 @@ class QueryDsl
         return $this;
     }
 
+    /**
+     * @return self<TModel>
+     */
     public function inputParser(DslInputParser $inputParser): self
     {
         $this->inputParser = $inputParser;
@@ -78,6 +99,9 @@ class QueryDsl
         return $this;
     }
 
+    /**
+     * @return self<TModel>
+     */
     public function filterNormalizer(DslFilterNormalizer $filterNormalizer): self
     {
         $this->filterNormalizer = $filterNormalizer;
@@ -85,6 +109,9 @@ class QueryDsl
         return $this;
     }
 
+    /**
+     * @return self<TModel>
+     */
     public function paginationPolicy(DslPaginationPolicy $paginationPolicy): self
     {
         $this->paginationPolicy = $paginationPolicy;
@@ -92,6 +119,9 @@ class QueryDsl
         return $this;
     }
 
+    /**
+     * @return QueryDslResult<TModel>
+     */
     public function apply(): QueryDslResult
     {
         $inputMap = $this->inputMap ?? DslInputMap::make();
@@ -105,7 +135,10 @@ class QueryDsl
 
         $this->kernel()->applyContext($this->builder, $context);
 
-        return new QueryDslResult($this->builder, $context);
+        /** @var QueryDslResult<TModel> $result */
+        $result = new QueryDslResult($this->builder, $context);
+
+        return $result;
     }
 
     protected function kernel(): QueryDslKernel

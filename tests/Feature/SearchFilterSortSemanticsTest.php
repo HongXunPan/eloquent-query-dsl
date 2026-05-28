@@ -109,7 +109,8 @@ final class SearchFilterSortSemanticsTest extends TestCase
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     private function normalizeSql(Builder $query): string
     {
@@ -117,7 +118,8 @@ final class SearchFilterSortSemanticsTest extends TestCase
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      * @return int[]
      */
     private function resultIds(Builder $query): array

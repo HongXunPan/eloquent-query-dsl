@@ -48,7 +48,8 @@ class DslFilterSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query, DslQueryRequestContext $context): void
     {
@@ -62,7 +63,7 @@ class DslFilterSectionApplier implements DslSectionApplier
             $definition,
             $conditions,
             /**
-             * @param Builder<Model> $query
+             * @param Builder<TModel> $query
              */
             function (Builder $query, DslFilterCondition $condition): void {
                 $column = $query->qualifyColumn($condition->fieldPath()->field());
@@ -202,7 +203,8 @@ class DslFilterSectionApplier implements DslSectionApplier
     }
 
     /**
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     protected function applyDerivedFilterValues(Builder $query, DslFilterValues $filterValues): void
     {

@@ -19,7 +19,8 @@ interface DslSectionApplier
     /**
      * 将当前 section 能力应用到 Builder。
      *
-     * @param Builder<Model> $query
+     * @template TModel of Model
+     * @param Builder<TModel> $query
      */
     public function apply(Builder $query, DslQueryRequestContext $context): void;
 }

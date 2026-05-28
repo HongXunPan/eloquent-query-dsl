@@ -15,3 +15,6 @@ parameters:
     ignoreErrors:
         - '#contains generic type Illuminate\\Database\\Eloquent\\Builder<.*> but class Illuminate\\Database\\Eloquent\\Builder is not generic#'
         - '#contains generic type Illuminate\\Database\\Eloquent\\Relations\\HasMany<.*> but class Illuminate\\Database\\Eloquent\\Relations\\HasMany is not generic#'
+        - '#Unable to resolve the template type TModel in call to method HongXunPan\\EloquentQueryDsl\\Kernel\\QueryDslKernel::apply\(\)#'
+        - '#Unable to resolve the template type TModel in call to method HongXunPan\\EloquentQueryDsl\\Kernel\\QueryDslKernel::applyContext\(\)#'
+        - '#Unable to resolve the template type TBuilderModel in call to method static method HongXunPan\\EloquentQueryDsl\\QueryDsl<.*>::for\(\)#'

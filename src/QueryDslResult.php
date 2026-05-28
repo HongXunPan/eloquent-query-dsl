@@ -9,6 +9,8 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 /**
+ * @template TModel of Model
+ *
  * QueryDSL 一次应用后的中性结果。
  *
  * 该对象只暴露 builder、context、filter values 与 pagination 等事实，
@@ -17,16 +19,23 @@ use Illuminate\Database\Eloquent\Model;
 class QueryDslResult
 {
     /**
-     * @param Builder<Model> $builder
+     * @var Builder<TModel>
      */
-    public function __construct(
-        private Builder $builder,
-        private DslQueryRequestContext $context,
-    ) {
+    private Builder $builder;
+
+    private DslQueryRequestContext $context;
+
+    /**
+     * @param Builder<TModel> $builder
+     */
+    public function __construct(Builder $builder, DslQueryRequestContext $context)
+    {
+        $this->builder = $builder;
+        $this->context = $context;
     }
 
     /**
-     * @return Builder<Model>
+     * @return Builder<TModel>
      */
     public function builder(): Builder
     {
