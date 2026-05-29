@@ -5,6 +5,7 @@ namespace HongXunPan\EloquentQueryDsl\Section;
 use HongXunPan\EloquentQueryDsl\Apply\DslFieldConditionScopeApplier;
 use HongXunPan\EloquentQueryDsl\Condition\DslSearchCondition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
+use HongXunPan\EloquentQueryDsl\Definition\DslSearchFieldDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryInput;
@@ -58,7 +59,10 @@ class DslSearchSectionApplier implements DslSectionApplier
              * @param Builder<Model> $query
              */
             function (Builder $query, DslSearchCondition $condition) use ($searchSection): void {
-                $derivedBehavior = $searchSection?->field($condition->canonicalField())?->derivedSearchBehavior();
+                $fieldDefinition = $searchSection?->field($condition->canonicalField());
+                $derivedBehavior = $fieldDefinition instanceof DslSearchFieldDefinition
+                    ? $fieldDefinition->derivedSearchBehavior()
+                    : null;
                 if ($derivedBehavior !== null) {
                     $derivedBehavior->apply($query, $condition);
                     return;
@@ -90,6 +94,10 @@ class DslSearchSectionApplier implements DslSectionApplier
             $fieldDefinition = $this->sectionReader->fieldDefinition($definition, self::SECTION, $fieldPath, $value);
             if ($fieldDefinition === null) {
                 return;
+            }
+
+            if (!$fieldDefinition instanceof DslSearchFieldDefinition) {
+                throw DslQueryDslDefinitionException::fromMessage('query dsl search 字段定义类型错误');
             }
 
             $value = $this->normalizeSearchValue($value);

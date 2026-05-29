@@ -88,8 +88,4 @@ class DslFilterValue
         return $this->values;
     }
 
-    public function filterRule(): string
-    {
-        return $this->definition->filterRule();
-    }
 }

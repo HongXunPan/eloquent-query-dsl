@@ -4,8 +4,10 @@ namespace HongXunPan\EloquentQueryDsl\Section;
 
 use HongXunPan\EloquentQueryDsl\Apply\DslFieldConditionScopeApplier;
 use HongXunPan\EloquentQueryDsl\Condition\DslFilterCondition;
+use HongXunPan\EloquentQueryDsl\Definition\DslFilterFieldDefinition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryFieldDefinition;
+use HongXunPan\EloquentQueryDsl\Definition\DslQuerySectionDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
@@ -120,13 +122,15 @@ class DslFilterSectionApplier implements DslSectionApplier
             });
         }
 
-        $normalizedFilterSet = $this->normalizeFilterSetByDefinitions(
+        $normalizedFilterSet = $this->normalizeFilterSetBySection(
             $normalizedPayload,
-            $sectionDefinition?->fields() ?? [],
+            $sectionDefinition,
         );
 
         foreach ($sectionDefinition?->fields() ?? [] as $fieldDefinition) {
-            $item = $normalizedFilterSet->item($this->payloadField($fieldDefinition));
+            $item = $this->itemFromNormalizedPayload($normalizedFilterSet, $fieldDefinition)
+                ?? $normalizedFilterSet->item($this->payloadField($fieldDefinition));
+
             if ($item === null) {
                 continue;
             }
@@ -142,24 +146,17 @@ class DslFilterSectionApplier implements DslSectionApplier
 
     /**
      * @param array<string, mixed> $payload
-     * @param array<string, DslQueryFieldDefinition> $fieldDefinitions
      */
-    protected function normalizeFilterSetByDefinitions(array $payload, array $fieldDefinitions): DslNormalizedFilterSet
+    protected function normalizeFilterSetBySection(array $payload, ?DslQuerySectionDefinition $sectionDefinition): DslNormalizedFilterSet
     {
-        $validatorRules = [];
-        $hasRule = false;
+        $fieldDefinitions = $sectionDefinition?->fields() ?? [];
+        $validatorRules = $sectionDefinition?->validationRules() ?? [];
 
-        foreach ($fieldDefinitions as $fieldDefinition) {
-            $payloadField = $this->payloadField($fieldDefinition);
-            $validatorRules[$payloadField] = $fieldDefinition->filterRule();
-            $hasRule = $hasRule || trim($fieldDefinition->filterRule()) !== '';
-        }
-
-        if ($validatorRules === []) {
+        if ($fieldDefinitions === [] && $validatorRules === []) {
             return DslNormalizedFilterSet::success($payload, []);
         }
 
-        if (!$hasRule) {
+        if ($validatorRules === []) {
             return $this->normalizeFilterSetWithoutRules($payload, $fieldDefinitions);
         }
 
@@ -213,7 +210,12 @@ class DslFilterSectionApplier implements DslSectionApplier
                 continue;
             }
 
-            $behavior = $filterValue->definition()->derivedFilterBehavior();
+            $fieldDefinition = $filterValue->definition();
+            if (!$fieldDefinition instanceof DslFilterFieldDefinition) {
+                continue;
+            }
+
+            $behavior = $fieldDefinition->derivedFilterBehavior();
             if ($behavior === null) {
                 continue;
             }
@@ -233,7 +235,8 @@ class DslFilterSectionApplier implements DslSectionApplier
                 continue;
             }
 
-            if ($filterValue->definition()->hasDerivedFilterBehavior()) {
+            $fieldDefinition = $filterValue->definition();
+            if ($fieldDefinition instanceof DslFilterFieldDefinition && $fieldDefinition->hasDerivedFilterBehavior()) {
                 continue;
             }
 
@@ -246,11 +249,27 @@ class DslFilterSectionApplier implements DslSectionApplier
         return $conditions;
     }
 
-    protected function payloadField(DslQueryFieldDefinition $fieldDefinition): string
+    protected function payloadField(mixed $fieldDefinition): string
     {
         return $fieldDefinition->fieldPath()->isMainEntity()
             ? $fieldDefinition->fieldPath()->field()
             : $fieldDefinition->canonical();
+    }
+
+    protected function itemFromNormalizedPayload(
+        DslNormalizedFilterSet $filterSet,
+        mixed $fieldDefinition,
+    ): ?DslNormalizedFilterItem {
+        $payloadField = $this->payloadField($fieldDefinition);
+        $normalizedValueInfo = $this->getArrayValueByPath($filterSet->normalizedPayload(), $payloadField);
+        if (!$normalizedValueInfo['exists']) {
+            return null;
+        }
+
+        return new DslNormalizedFilterItem(
+            $payloadField,
+            $this->normalizeQueryValues($normalizedValueInfo['value']),
+        );
     }
 
     /**
@@ -267,6 +286,10 @@ class DslFilterSectionApplier implements DslSectionApplier
 
         foreach ($segments as $index => $segment) {
             if ($index === count($segments) - 1) {
+                if (array_key_exists($segment, $current)) {
+                    throw DslQueryDslException::invalidQuery('query.filter 参数冲突：' . $path);
+                }
+
                 $current[$segment] = $value;
                 return;
             }

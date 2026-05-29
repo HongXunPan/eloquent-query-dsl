@@ -26,7 +26,8 @@ final class QueryDslEntryTest extends TestCase
         $definition = DslQueryDefinition::make('article')
             ->strict(true)
             ->allowSearch(['title'])
-            ->allowFilter(['status' => 'trim'])
+            ->allowFilter(['status'])
+            ->filterRules(['status' => 'trim'])
             ->allowSort(['sort_order']);
 
         $result = QueryDsl::for(QueryDslEntryTestArticle::query(), $definition)

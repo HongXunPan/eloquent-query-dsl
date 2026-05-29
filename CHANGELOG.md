@@ -2,30 +2,36 @@
 
 本文档记录 `hongxunpan/eloquent-query-dsl` 的重要变更。
 
-当前项目处于 **pre-1.0** 阶段，尚未承诺 `1.x` 级别的长期兼容性；正式 tag / Packagist 发布前，请以明确 commit 或 tag 锁定依赖。
+当前项目处于 **pre-1.0** 阶段，尚未承诺 `1.x` 级别的长期兼容性；业务项目正式接入时应以明确 tag 锁定依赖。
 
 格式参考 Keep a Changelog，但在当前阶段保持轻量。
 
 ## [Unreleased]
+
+### Changed
+
+- 将 filter capability 与 validator rules 解耦：`allowFilter()` 只声明可查询字段，新增 `filterRules()` 承接 filter payload 校验规则。
+- 支持 `field` / `field.*` 与 relation filter 子路径规则，SQL 条件只由已开放的 filter capability 生成。
+
+## [0.2.0] - 2026-05-28
+
+### Changed
+
+- 统一 flat / string sort 输入解析结果为标准排序项列表，避免使用侧在主入口和自定义输入映射之间处理两套排序形状。
+- 同步更新 README、API Reference、接入指南、能力矩阵与 canonical 示例中的 sort 输入说明。
+
+### Validation
+
+- `composer validate --strict`、`composer quality`、`git diff --check` 已在发布前通过。
+
+## [0.1.1] - 2026-05-28
 
 ### Fixed
 
 - 补齐 Query DSL Builder / relation 传递链路的泛型 PHPDoc，覆盖入口、结果对象、Kernel、Apply、Section、Derived 与测试辅助方法，修复 Illuminate 10+ / 11+ / 12+ 下游 PHPStan 对 `Builder<TModel>` / relation 泛型的检查报错。
 - 包级 PHPStan 配置保留 Illuminate 9 兼容忽略，避免旧版 Illuminate 未声明泛型时反向失败。
 
-### Documentation
-
-- README 调整为英文主入口，并新增 `README.zh-CN.md` 中文入口。
-- 新增双语核心文档：
-  - `docs/api-reference.md` / `docs/API能力与扩展点.zh-CN.md`；
-  - `docs/integration-guide.md` / `docs/接入指南.zh-CN.md`；
-  - `docs/public-contracts.md` / `docs/公开契约与稳定性承诺.zh-CN.md`；
-  - `docs/query-capability-matrix.md` / `docs/查询能力矩阵.zh-CN.md`；
-  - `docs/high-value-canonical-examples.md` / `docs/高价值 canonical 示例.zh-CN.md`。
-- 明确开源使用视角下的 API 能力、扩展点、接入步骤和 adapter 边界，避免依赖业务项目约定俗成。
-- CONTRIBUTING 与发布检查清单增加双语文档同步要求。
-
-## [0.1.0] - 待发布
+## [0.1.0] - 2026-05-28
 
 ### Added
 

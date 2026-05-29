@@ -89,6 +89,10 @@ class DslJsonDecoder
      */
     public function isListArray(array $data): bool
     {
+        if ($data === []) {
+            return false;
+        }
+
         $index = 0;
         foreach ($data as $key => $_) {
             if ($key !== $index) {

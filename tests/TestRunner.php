@@ -52,7 +52,8 @@ $sortCondition = DslSortCondition::make($fieldPath, 'DESC');
 $definition = DslQueryDefinition::make('activity')
     ->allowSearch(['title'])
     ->allowKeywordSearch('keyword', ['title', 'summary'])
-    ->allowFilter(['status' => 'string'])
+    ->allowFilter(['status'])
+    ->filterRules(['status' => 'string'])
     ->allowSort(['updated_at'])
     ->defaultSort('updated_at', 'DESC')
     ->strict();
@@ -78,7 +79,9 @@ $filterConditions = $filterSectionApplier->conditions(
 $filterRuleWithoutNormalizerThrows = false;
 try {
     $filterSectionApplier->conditions(
-        DslQueryDefinition::make('activity')->allowFilter(['status' => 'string']),
+        DslQueryDefinition::make('activity')
+            ->allowFilter(['status'])
+            ->filterRules(['status' => 'string']),
         DslQueryInput::fromRaw(['filter' => ['status' => 'published']]),
     );
 } catch (DslQueryDslDefinitionException $exception) {

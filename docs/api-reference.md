@@ -139,7 +139,8 @@ $definition = DslQueryDefinition::make('article')
 
 | Method | Meaning |
 | --- | --- |
-| `allowFilter(array $fields)` | Allows scalar `where` and array `whereIn`; associative values become normalizer rules |
+| `allowFilter(array $fields)` | Declares allowed filter capabilities; scalar values become `where`, arrays become `whereIn` |
+| `filterRules(array $rules)` | Declares validator / normalizer rules for filter payload, including child paths such as `field.*` |
 | `allowDerivedFilter(string $field, DslDerivedFilterRuleMap $ruleMap)` | Maps protocol values to derived query rules |
 | `allowDerivedFilterHandler(string $field, callable $handler)` | Lets application code handle a custom filter field directly |
 

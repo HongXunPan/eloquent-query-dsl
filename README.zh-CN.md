@@ -158,6 +158,7 @@ $filterValues = $result->filterValues();
 | 字段 search | 已支持 | `search[field => value]`；多个字段 AND；空字符串忽略 |
 | keyword search | 已支持 | 一个输入字段 OR 命中多个主实体字段 |
 | filter | 已支持 | 标量转 `where`；数组转 `whereIn`；空值忽略；`0` / `false` 有意义 |
+| filter rules | 已支持 | `allowFilter()` 声明查询能力；`filterRules()` 声明 `field.*` 等校验 / 归一化规则 |
 | filter normalizer | 已支持 | 通过 `DslFilterNormalizer` 接入应用校验 / 归一化 |
 | derived filter/search | 已支持 | 为应用特定查询行为提供显式扩展点 |
 | between | 已支持 | 应用 `whereBetween`；业务时间边界策略留在 core 外 |

@@ -60,6 +60,16 @@ Assert::same('3', $jsonPageInput->pageValue(), 'JSON page.page 应成功解析')
 Assert::same('50', $jsonPageInput->limitValue(), 'JSON page.limit 应成功解析');
 Assert::same('200', $jsonPageInput->rawExportLimit(), '顶层 export_limit 应保持为导出上限原始值');
 
+$emptyJsonQueryInput = $parser->queryInput([
+    'query' => '{}',
+], $defaultMap);
+$emptyJsonPageInput = $parser->pageInput([
+    'page' => '{}',
+], $defaultMap);
+
+Assert::same([], $emptyJsonQueryInput->names(), 'JSON 空对象 query 应解析为空查询');
+Assert::same(null, $emptyJsonPageInput->pageValue(), 'JSON 空对象 page 应解析为空分页参数');
+
 $arrayMap = DslInputMap::make()
     ->filter('where')
     ->sort('order_by')

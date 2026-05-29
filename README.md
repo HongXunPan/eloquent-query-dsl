@@ -158,6 +158,7 @@ For full status, behavior, adapter boundaries, and rejection reasons, read [Quer
 | Field search | Supported | `search[field => value]`; multiple fields are AND; empty strings are ignored |
 | Keyword search | Supported | one input field OR-matches multiple main-entity fields |
 | Filter | Supported | scalar becomes `where`; array becomes `whereIn`; empty values are ignored; `0` / `false` are meaningful |
+| Filter rules | Supported | `allowFilter()` declares capabilities; `filterRules()` declares validation / normalization rules such as `field.*` |
 | Filter normalizer | Supported | application validation / normalization through `DslFilterNormalizer` |
 | Derived filter/search | Supported | explicit extension hooks for application-specific query behavior |
 | Between | Supported | applies `whereBetween`; business time-boundary policy stays outside core |

@@ -19,6 +19,11 @@ class DslQuerySectionDefinition
      */
     protected array $fields = [];
 
+    /**
+     * @var array<string, string>
+     */
+    protected array $validationRules = [];
+
     private function __construct(string $name)
     {
         $this->name = $name;
@@ -43,7 +48,7 @@ class DslQuerySectionDefinition
     {
         $canonical = $fieldPath->canonical();
         if (!array_key_exists($canonical, $this->fields)) {
-            $this->fields[$canonical] = DslQueryFieldDefinition::make($fieldPath);
+            $this->fields[$canonical] = $this->makeFieldDefinition($fieldPath);
         }
 
         return $this->fields[$canonical];
@@ -73,5 +78,57 @@ class DslQuerySectionDefinition
     public function fieldNames(): array
     {
         return array_keys($this->fields);
+    }
+
+    /**
+     * @param array<string, string> $rules
+     */
+    public function withValidationRules(array $rules): self
+    {
+        $this->validationRules = [];
+        foreach ($rules as $field => $rule) {
+            $field = trim((string)$field);
+            if ($field === '') {
+                throw DslQueryDslDefinitionException::fromMessage('query dsl section 校验规则字段不能为空');
+            }
+
+            $this->validationRules[$field] = trim((string)$rule);
+        }
+
+        return $this;
+    }
+
+    public function hasValidationRules(): bool
+    {
+        return $this->validationRules !== [];
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function validationRules(): array
+    {
+        return $this->validationRules;
+    }
+
+    protected function makeFieldDefinition(DslFieldPath $fieldPath): DslQueryFieldDefinition
+    {
+        if ($this->name === 'search') {
+            return DslSearchFieldDefinition::make($fieldPath);
+        }
+
+        if ($this->name === 'filter') {
+            return DslFilterFieldDefinition::make($fieldPath);
+        }
+
+        if ($this->name === 'between') {
+            return DslBetweenFieldDefinition::make($fieldPath);
+        }
+
+        if ($this->name === 'sort') {
+            return DslSortFieldDefinition::make($fieldPath);
+        }
+
+        return DslQueryFieldDefinition::make($fieldPath);
     }
 }

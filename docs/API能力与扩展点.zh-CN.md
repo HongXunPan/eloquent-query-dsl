@@ -139,7 +139,8 @@ $definition = DslQueryDefinition::make('article')
 
 | 方法 | 含义 |
 | --- | --- |
-| `allowFilter(array $fields)` | 开放标量 `where` 与数组 `whereIn`；关联数组 value 作为 normalizer rule |
+| `allowFilter(array $fields)` | 声明开放的 filter capability；标量转 `where`，数组转 `whereIn` |
+| `filterRules(array $rules)` | 声明 filter payload 的校验 / 归一化规则，支持 `field.*` 等子路径 |
 | `allowDerivedFilter(string $field, DslDerivedFilterRuleMap $ruleMap)` | 把协议值映射到派生查询规则 |
 | `allowDerivedFilterHandler(string $field, callable $handler)` | 由应用代码直接处理自定义 filter 字段 |
 

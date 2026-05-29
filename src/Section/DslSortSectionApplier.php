@@ -3,9 +3,11 @@
 namespace HongXunPan\EloquentQueryDsl\Section;
 
 use HongXunPan\EloquentQueryDsl\Condition\DslSortCondition;
+use HongXunPan\EloquentQueryDsl\Definition\DslFilterFieldDefinition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefaultSort;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryFieldDefinition;
+use HongXunPan\EloquentQueryDsl\Definition\DslSortFieldDefinition;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Field\DslFieldPath;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
@@ -164,6 +166,10 @@ class DslSortSectionApplier implements DslSectionApplier
                 continue;
             }
 
+            if (!$fieldDefinition instanceof DslSortFieldDefinition) {
+                throw DslQueryDslDefinitionException::fromMessage('query dsl sort 字段定义类型错误');
+            }
+
             if (!$fieldDefinition->sortDirectionPolicy()->allows($order)) {
                 $this->sectionReader->rejectInvalidInput($definition, self::SECTION, $fieldPath->canonical(), '该字段不支持当前排序方向');
                 continue;
@@ -230,6 +236,10 @@ class DslSortSectionApplier implements DslSectionApplier
         DslQueryFieldDefinition $fieldDefinition,
         DslFilterValues $filterValues,
     ): array {
+        if (!$fieldDefinition instanceof DslFilterFieldDefinition) {
+            return [];
+        }
+
         if (!$fieldDefinition->hasDerivedDefaultSortStrategy()) {
             return [];
         }

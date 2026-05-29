@@ -297,14 +297,14 @@ final class QueryDslCoreRegression
         ]));
         Assert::notContains('where', $this->normalizeSql($falseFilterQuery), 'false filter 当前应被视为空值并忽略');
 
-        $defaultRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status' => 'default:draft']);
+        $defaultRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status'])->filterRules(['status' => 'default:draft']);
         $defaultRuleValues = $this->filterSectionApplier->filterValues($defaultRuleDefinition, DslQueryInput::empty());
         Assert::same('draft', $defaultRuleValues->singleValue('status'), 'fake normalizer 应支持 default 规则');
         $defaultRuleQuery = $this->kernel->apply($this->newArticleQuery(), $defaultRuleDefinition, DslQueryInput::empty());
         Assert::same(['draft'], $defaultRuleQuery->getBindings(), 'default filter 绑定值应来自默认规则');
         Assert::resultIds($defaultRuleQuery, [2], 'default filter 生效结果集应匹配默认输入条件');
 
-        $trimRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status' => 'trim']);
+        $trimRuleDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['status'])->filterRules(['status' => 'trim']);
         $trimRuleInput = DslQueryInput::fromRaw(['filter' => ['status' => '  draft  ']]);
         $trimRuleValues = $this->filterSectionApplier->filterValues($trimRuleDefinition, $trimRuleInput);
         Assert::same('draft', $trimRuleValues->singleValue('status'), 'fake normalizer 应支持 trim 规则');
@@ -312,7 +312,42 @@ final class QueryDslCoreRegression
         Assert::same(['draft'], $trimRuleQuery->getBindings(), 'trim filter 绑定值应使用归一化结果');
         Assert::resultIds($trimRuleQuery, [2], 'trim filter 生效结果集应匹配归一化输入条件');
 
-        $requiredDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['article_id' => 'required']);
+        $listRuleDefinition = DslQueryDefinition::make('article')
+            ->strict(true)
+            ->allowFilter(['id'])
+            ->filterRules([
+                'id:文章ID' => 'listOf',
+                'id.*:文章ID' => 'nonNegativeInt|in:[1,2]',
+            ]);
+        $listRuleQuery = $this->kernel->apply($this->newArticleQuery(), $listRuleDefinition, DslQueryInput::fromRaw([
+            'filter' => ['id' => ['1', '2']],
+        ]));
+        Assert::contains('id" in (?, ?)', $this->normalizeSql($listRuleQuery), 'filterRules 子规则应支持数组项归一化后 whereIn');
+        Assert::same([1, 2], $listRuleQuery->getBindings(), 'filterRules 子规则应归一化数组项');
+        Assert::resultIds($listRuleQuery, [1, 2], 'filterRules 子规则结果集应匹配');
+        Assert::throws(
+            fn () => $this->filterSectionApplier->filterValues($listRuleDefinition, DslQueryInput::fromRaw([
+                'filter' => ['id' => '1'],
+            ])),
+            DslQueryDslException::class,
+            'id必须是数组',
+        );
+        Assert::throws(
+            fn () => $this->filterSectionApplier->filterValues($listRuleDefinition, DslQueryInput::fromRaw([
+                'filter' => ['id' => ['3']],
+            ])),
+            DslQueryDslException::class,
+            'id.*不在允许范围内',
+        );
+        Assert::throws(
+            fn () => $this->kernel->apply($this->newArticleQuery(), $listRuleDefinition, DslQueryInput::fromRaw([
+                'filter' => ['id.*' => [1]],
+            ])),
+            DslQueryDslException::class,
+            'query字段格式错误',
+        );
+
+        $requiredDefinition = DslQueryDefinition::make('article')->strict(true)->allowFilter(['article_id'])->filterRules(['article_id' => 'required']);
         Assert::throws(
             fn () => $this->filterSectionApplier->filterValues($requiredDefinition, DslQueryInput::empty()),
             DslQueryDslException::class,
@@ -404,6 +439,35 @@ final class QueryDslCoreRegression
         Assert::contains('"body" = ?', $this->normalizeSql($relationFilterQuery), 'relation filter 应命中关联字段 where');
         Assert::same(['first comment'], $relationFilterQuery->getBindings(), 'relation filter 绑定值应正确');
         Assert::resultIds($relationFilterQuery, [1], 'relation filter 生效结果集应匹配输入条件');
+
+        $relationFilterRuleDefinition = DslQueryDefinition::make('article')
+            ->relation('comments', 'comments')
+            ->strict(true)
+            ->allowFilter(['comments.id'])
+            ->filterRules([
+                'comments.id:评论ID' => 'listOf',
+                'comments.id.*:评论ID' => 'nonNegativeInt|in:[1,2]',
+            ]);
+        $flatRelationFilterQuery = $this->kernel->apply($this->newArticleQuery(), $relationFilterRuleDefinition, DslQueryInput::fromRaw([
+            'filter' => ['comments.id' => ['1']],
+        ]));
+        $nestedRelationFilterQuery = $this->kernel->apply($this->newArticleQuery(), $relationFilterRuleDefinition, DslQueryInput::fromRaw([
+            'filter' => ['comments' => ['id' => ['1']]],
+        ]));
+        Assert::same($flatRelationFilterQuery->toSql(), $nestedRelationFilterQuery->toSql(), 'relation filter 扁平输入与嵌套输入应统一为同一 SQL');
+        Assert::same($flatRelationFilterQuery->getBindings(), $nestedRelationFilterQuery->getBindings(), 'relation filter 扁平输入与嵌套输入绑定值应一致');
+        Assert::same([1], $flatRelationFilterQuery->getBindings(), 'relation filter 子规则应归一化数组项');
+        Assert::resultIds($flatRelationFilterQuery, [1], 'relation filter 扁平输入结果集应匹配');
+        Assert::throws(
+            fn () => $this->kernel->apply($this->newArticleQuery(), $relationFilterRuleDefinition, DslQueryInput::fromRaw([
+                'filter' => [
+                    'comments.id' => ['1'],
+                    'comments' => ['id' => ['1']],
+                ],
+            ])),
+            DslQueryDslException::class,
+            'query.filter 参数冲突',
+        );
 
         Assert::throws(
             fn () => $this->kernel->apply(

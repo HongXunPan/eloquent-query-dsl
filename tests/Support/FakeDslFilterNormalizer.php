@@ -21,8 +21,30 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
         $items = [];
         $errors = [];
 
-        foreach ($rules as $payloadField => $rule) {
+        foreach ($rules as $ruleKey => $rule) {
+            $payloadField = $this->rulePath((string)$ruleKey);
             $rule = trim($rule);
+
+            if (str_ends_with($payloadField, '.*')) {
+                $parentPath = substr($payloadField, 0, -2);
+                $parentInfo = $this->getArrayValueByPath($normalizedPayload, $parentPath);
+                if (!$parentInfo['exists']) {
+                    continue;
+                }
+
+                if (!is_array($parentInfo['value'])) {
+                    $errors[] = $parentPath . '必须是数组';
+                    continue;
+                }
+
+                $normalizedItems = [];
+                foreach (array_values($parentInfo['value']) as $item) {
+                    $normalizedItems[] = $this->normalizeRuleValue($item, $rule, $payloadField, $errors);
+                }
+                $this->setArrayValueByPath($normalizedPayload, $parentPath, $normalizedItems, true);
+                continue;
+            }
+
             $valueInfo = $this->getArrayValueByPath($normalizedPayload, $payloadField);
 
             if (str_contains($rule, 'default:') && !$valueInfo['exists']) {
@@ -41,9 +63,14 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
             }
 
             $value = $valueInfo['value'];
+            if (str_contains($rule, 'listOf') && !is_array($value)) {
+                $errors[] = $payloadField . '必须是数组';
+                continue;
+            }
+
             if (str_contains($rule, 'trim') && is_string($value)) {
                 $value = trim($value);
-                $this->setArrayValueByPath($normalizedPayload, $payloadField, $value);
+                $this->setArrayValueByPath($normalizedPayload, $payloadField, $value, true);
             }
 
             $items[$payloadField] = new DslNormalizedFilterItem($payloadField, $this->normalizeQueryValues($value));
@@ -53,7 +80,52 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
             return DslNormalizedFilterSet::failure($errors);
         }
 
+        foreach ($items as $payloadField => $item) {
+            $valueInfo = $this->getArrayValueByPath($normalizedPayload, $payloadField);
+            if ($valueInfo['exists']) {
+                $items[$payloadField] = new DslNormalizedFilterItem(
+                    $payloadField,
+                    $this->normalizeQueryValues($valueInfo['value']),
+                );
+            }
+        }
+
         return DslNormalizedFilterSet::success($normalizedPayload, $items);
+    }
+
+    private function rulePath(string $ruleKey): string
+    {
+        $ruleKey = trim($ruleKey);
+        $position = strpos($ruleKey, ':');
+        return $position === false ? $ruleKey : substr($ruleKey, 0, $position);
+    }
+
+    /**
+     * @param array<int, string> $errors
+     */
+    private function normalizeRuleValue(mixed $value, string $rule, string $payloadField, array &$errors): mixed
+    {
+        if (str_contains($rule, 'nonNegativeInt')) {
+            if (is_int($value)) {
+                $intValue = $value;
+            } elseif (is_string($value) && preg_match('/^\d+$/', $value) === 1) {
+                $intValue = (int)$value;
+            } else {
+                $errors[] = $payloadField . '必须是非负整数';
+                return $value;
+            }
+
+            $value = $intValue;
+        }
+
+        if (str_contains($rule, 'in:')) {
+            $allowed = $this->jsonRuleArgument($rule, 'in:');
+            if ($allowed !== [] && !in_array($value, $allowed, true)) {
+                $errors[] = $payloadField . '不在允许范围内';
+            }
+        }
+
+        return $value;
     }
 
     private function ruleArgument(string $rule, string $prefix): string
@@ -66,6 +138,16 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
         }
 
         return '';
+    }
+
+    /**
+     * @return array<int, mixed>
+     */
+    private function jsonRuleArgument(string $rule, string $prefix): array
+    {
+        $argument = $this->ruleArgument($rule, $prefix);
+        $decoded = json_decode($argument, true);
+        return is_array($decoded) ? array_values($decoded) : [];
     }
 
     /**
@@ -92,14 +174,16 @@ final class FakeDslFilterNormalizer implements DslFilterNormalizer
     /**
      * @param array<string, mixed> $data
      */
-    private function setArrayValueByPath(array &$data, string $path, mixed $value): void
+    private function setArrayValueByPath(array &$data, string $path, mixed $value, bool $overwrite = false): void
     {
         $segments = explode('.', $path);
         $current = &$data;
 
         foreach ($segments as $index => $segment) {
             if ($index === count($segments) - 1) {
-                $current[$segment] = $value;
+                if ($overwrite || !array_key_exists($segment, $current)) {
+                    $current[$segment] = $value;
+                }
                 return;
             }
 

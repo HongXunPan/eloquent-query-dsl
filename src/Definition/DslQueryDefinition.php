@@ -138,7 +138,7 @@ class DslQueryDefinition
     public function searchRightLike(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'searchRightLike') as $field) {
-            $this->declaredField('search', $field)
+            $this->declaredSearchField($field)
                 ->withSearchMode('right_like');
         }
 
@@ -147,7 +147,7 @@ class DslQueryDefinition
 
     public function allowDerivedSearch(string $field, callable $handler): self
     {
-        $this->declaredField('search', $field)
+        $this->declaredSearchField($field)
             ->withDerivedSearchHandler($handler);
 
         return $this;
@@ -159,6 +159,10 @@ class DslQueryDefinition
     public function allowKeywordSearch(string $field, array $targetFields, string $mode = ''): self
     {
         $fieldDefinition = $this->field('search', $field);
+        if (!$fieldDefinition instanceof DslSearchFieldDefinition) {
+            throw DslQueryDslDefinitionException::fromMessage('query dsl search 字段定义类型错误');
+        }
+
         $fieldDefinition->withDerivedSearchBehavior(
             DslKeywordSearchHandler::forFields(
                 $this->keywordSearchTargetFieldPaths($targetFields),
@@ -173,24 +177,30 @@ class DslQueryDefinition
     }
 
     /**
-     * @param array<int|string, string> $fields
+     * @param array<int, string> $fields
      */
     public function allowFilter(array $fields): self
     {
-        foreach ($fields as $key => $value) {
-            $field = is_int($key) ? (string)$value : (string)$key;
-            $rule = is_int($key) ? '' : (string)$value;
-
-            $this->field('filter', $field)
-                ->withFilterRule($rule);
+        foreach ($this->normalizeFieldList($fields, 'allowFilter') as $field) {
+            $this->field('filter', $field);
         }
+
+        return $this;
+    }
+
+    /**
+     * @param array<string, string> $rules
+     */
+    public function filterRules(array $rules): self
+    {
+        $this->section('filter')->withValidationRules($rules);
 
         return $this;
     }
 
     public function allowDerivedFilter(string $field, DslDerivedFilterRuleMap $ruleMap): self
     {
-        $this->declaredField('filter', $field)
+        $this->declaredFilterField($field)
             ->withDerivedFilterRuleMap($ruleMap);
 
         return $this;
@@ -198,7 +208,7 @@ class DslQueryDefinition
 
     public function allowDerivedFilterHandler(string $field, callable $handler): self
     {
-        $this->declaredField('filter', $field)
+        $this->declaredFilterField($field)
             ->withDerivedFilterHandler($handler);
 
         return $this;
@@ -230,7 +240,7 @@ class DslQueryDefinition
     public function sortAscOnly(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'sortAscOnly') as $field) {
-            $this->declaredField('sort', $field)
+            $this->declaredSortField($field)
                 ->withSortDirectionPolicy(DslSortDirectionPolicy::ascOnly());
         }
 
@@ -243,7 +253,7 @@ class DslQueryDefinition
     public function sortDescOnly(array $fields): self
     {
         foreach ($this->normalizeFieldList($fields, 'sortDescOnly') as $field) {
-            $this->declaredField('sort', $field)
+            $this->declaredSortField($field)
                 ->withSortDirectionPolicy(DslSortDirectionPolicy::descOnly());
         }
 
@@ -252,7 +262,7 @@ class DslQueryDefinition
 
     public function allowDerivedDefaultSortByFilter(string $field, DslDerivedDefaultSortStrategy $strategy): self
     {
-        $this->declaredField('filter', $field)
+        $this->declaredFilterField($field)
             ->withDerivedDefaultSortStrategy($strategy);
 
         return $this;
@@ -324,6 +334,36 @@ class DslQueryDefinition
                 ucfirst($sectionName),
                 $fieldPath->canonical(),
             ));
+        }
+
+        return $fieldDefinition;
+    }
+
+    protected function declaredSearchField(string $field): DslSearchFieldDefinition
+    {
+        $fieldDefinition = $this->declaredField('search', $field);
+        if (!$fieldDefinition instanceof DslSearchFieldDefinition) {
+            throw DslQueryDslDefinitionException::fromMessage('query dsl search 字段定义类型错误');
+        }
+
+        return $fieldDefinition;
+    }
+
+    protected function declaredFilterField(string $field): DslFilterFieldDefinition
+    {
+        $fieldDefinition = $this->declaredField('filter', $field);
+        if (!$fieldDefinition instanceof DslFilterFieldDefinition) {
+            throw DslQueryDslDefinitionException::fromMessage('query dsl filter 字段定义类型错误');
+        }
+
+        return $fieldDefinition;
+    }
+
+    protected function declaredSortField(string $field): DslSortFieldDefinition
+    {
+        $fieldDefinition = $this->declaredField('sort', $field);
+        if (!$fieldDefinition instanceof DslSortFieldDefinition) {
+            throw DslQueryDslDefinitionException::fromMessage('query dsl sort 字段定义类型错误');
         }
 
         return $fieldDefinition;
