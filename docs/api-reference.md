@@ -159,7 +159,7 @@ $definition = DslQueryDefinition::make('article')
 
 | Method | Meaning |
 | --- | --- |
-| `relation(string $entity, string $relation)` | Maps a DSL relation alias to an Eloquent relation method |
+| `relation(string $entity, string $relation)` | Maps a DSL relation alias to an Eloquent relation path, including dot paths supported by `whereHas` |
 | `hasRelation(string $entity)` / `relationFor(string $entity)` | Introspection helpers |
 
 Relation search / filter requires a declared relation mapping. Relation sort is intentionally not supported because implicit joins, grouping, selected columns, and duplicate rows are application-specific.

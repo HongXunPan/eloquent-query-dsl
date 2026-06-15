@@ -18,7 +18,7 @@
 - 默认输入解析、自定义参数名、flat 输入与完全自定义 parser 契约；
 - `search / filter / between / sort` 读取与 Builder 应用；
 - 中性的 filter normalizer 契约与 filter values facts；
-- 字段、实体别名与 relation 名的安全 identifier 校验；
+- 字段、实体别名与 relation path 每一段的安全 identifier 校验；
 - 分页事实与分页策略上限；
 - PHPUnit、legacy smoke、PHPStan level 8、PHP-CS-Fixer、Composer audit 与 GitHub Actions 矩阵；
 - 发布检查清单与 `0.1.0` 待发布记录。

@@ -8,7 +8,11 @@ use HongXunPan\EloquentQueryDsl\Field\DslIdentifier;
 /**
  * Query DSL relation 能力定义。
  *
- * 该对象只声明 DSL 实体别名与 ORM relation 方法名的映射，不承接查询执行。
+ * 该对象只声明 DSL 实体别名与 ORM relation path 的映射，不承接查询执行。
+ *
+ * relation path 对齐 Eloquent whereHas 的点号路径能力，例如：
+ * - comments
+ * - signup.alumniCard
  */
 class DslRelationDefinition
 {
@@ -31,7 +35,7 @@ class DslRelationDefinition
 
         return new self(
             DslIdentifier::forDefinition($entity, '关联实体'),
-            DslIdentifier::forDefinition($relation, 'relation'),
+            DslIdentifier::relationPathForDefinition($relation),
         );
     }
 

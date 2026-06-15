@@ -18,7 +18,7 @@ Already in place:
 - default input parser, custom parameter maps, flat input, and fully custom parser contracts;
 - `search / filter / between / sort` readers and builder appliers;
 - neutral filter normalizer contract and filter-value facts;
-- safe identifier validation for fields, entity aliases, and relation names;
+- safe identifier validation for fields, entity aliases, and each segment in relation paths;
 - pagination facts and pagination policy limits;
 - PHPUnit, legacy smoke tests, PHPStan level 8, PHP-CS-Fixer, Composer audit, and GitHub Actions matrix;
 - release checklist and `0.1.0` pre-release changelog section.
@@ -142,7 +142,7 @@ This table is intentionally short. For responsibilities, signatures, extension p
 | --- | --- |
 | `QueryDsl` | Recommended entrypoint that wires Builder, definition, input, extensions, and returns `QueryDslResult` |
 | `QueryDslResult` | Holds the mutated Builder, parsed filter values, and pagination facts |
-| `DslQueryDefinition` | Declares allowed search, filter, between, sort, relations, defaults, strict mode, and derived behavior |
+| `DslQueryDefinition` | Declares allowed search, filter, between, sort, relation paths, defaults, strict mode, and derived behavior |
 | `DslInputMap` | Maps external parameter names to Query DSL sections without changing caller-facing API shape |
 | `DslInputParser` | Full custom input parser contract |
 | `DslFilterNormalizer` | Neutral bridge from application validation / normalization into filter facts |
@@ -163,7 +163,7 @@ For full status, behavior, adapter boundaries, and rejection reasons, read [Quer
 | Derived filter/search | Supported | explicit extension hooks for application-specific query behavior |
 | Between | Supported | applies `whereBetween`; business time-boundary policy stays outside core |
 | Sort | Supported | explicit sort, default sort, derived default sort, and direction policies |
-| Relation search/filter | Supported | uses declared relation mapping and relation scopes |
+| Relation search/filter | Supported | uses declared relation path mapping and relation scopes |
 | Relation sort | Not supported | intentionally blocked to avoid implicit join/group semantics |
 | Pagination facts | Supported | returns normalized facts only; application code executes pagination |
 | HTTP response | Adapter | application responsibility |

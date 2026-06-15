@@ -10,6 +10,7 @@
 
 ### Changed
 
+- `relation(entity, relation)` 的第二个参数从单个 relation 方法名扩展为 Eloquent relation path，支持 `comments.author` 这类点号路径；路径每一段仍走安全 identifier 校验。
 - 将 filter capability 与 validator rules 解耦：`allowFilter()` 只声明可查询字段，新增 `filterRules()` 承接 filter payload 校验规则。
 - 支持 `field` / `field.*` 与 relation filter 子路径规则，SQL 条件只由已开放的 filter capability 生成。
 

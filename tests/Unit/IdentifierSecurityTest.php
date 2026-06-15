@@ -26,11 +26,19 @@ final class IdentifierSecurityTest extends TestCase
         DslQueryDefinition::make('article')->allowFilter(['count(*)']);
     }
 
-    public function testRelationRejectsUnsafeMethodName(): void
+    public function testRelationAcceptsSafePath(): void
+    {
+        $definition = DslQueryDefinition::make('article')
+            ->relation('comments', 'comments.author');
+
+        self::assertSame('comments.author', $definition->relationFor('comments')?->relation());
+    }
+
+    public function testRelationRejectsUnsafePathSegment(): void
     {
         $this->expectException(DslQueryDslDefinitionException::class);
         $this->expectExceptionMessage('relation格式错误');
 
-        DslQueryDefinition::make('article')->relation('comments', 'comments.author');
+        DslQueryDefinition::make('article')->relation('comments', 'comments.author;drop');
     }
 }

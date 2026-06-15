@@ -24,6 +24,7 @@ use HongXunPan\EloquentQueryDsl\Tests\Support\FakeDslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Tests\Support\TestDatabase;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -144,8 +145,14 @@ final class QueryDslCoreRegression
             '关联实体格式错误',
         );
 
+        Assert::same(
+            'comments.author',
+            DslQueryDefinition::make('article')->relation('comments', 'comments.author')->relationFor('comments')?->relation(),
+            'relation 应支持 Eloquent 点号路径',
+        );
+
         Assert::throws(
-            fn () => DslQueryDefinition::make('article')->relation('comments', 'comments.author'),
+            fn () => DslQueryDefinition::make('article')->relation('comments', 'comments..author'),
             DslQueryDslDefinitionException::class,
             'relation格式错误',
         );
@@ -428,6 +435,18 @@ final class QueryDslCoreRegression
         Assert::same(['%first%'], $relationSearchQuery->getBindings(), 'relation search 绑定值应正确');
         Assert::resultIds($relationSearchQuery, [1], 'relation search 生效结果集应匹配输入条件');
 
+        $nestedRelationSearchDefinition = DslQueryDefinition::make('article')
+            ->relation('comment_author', 'comments.author')
+            ->strict(true)
+            ->allowSearch(['comment_author.name']);
+        $nestedRelationSearchQuery = $this->kernel->apply($this->newArticleQuery(), $nestedRelationSearchDefinition, DslQueryInput::fromRaw([
+            'search' => ['comment_author' => ['name' => 'Alice']],
+        ]));
+        Assert::contains('exists', $this->normalizeSql($nestedRelationSearchQuery), '嵌套 relation search 应转换为 whereHas');
+        Assert::contains('"name" like ?', $this->normalizeSql($nestedRelationSearchQuery), '嵌套 relation search 应命中最末 relation 字段 like');
+        Assert::same(['%Alice%'], $nestedRelationSearchQuery->getBindings(), '嵌套 relation search 绑定值应正确');
+        Assert::resultIds($nestedRelationSearchQuery, [1], '嵌套 relation search 生效结果集应匹配输入条件');
+
         $relationFilterDefinition = DslQueryDefinition::make('article')
             ->relation('comments', 'comments')
             ->strict(true)
@@ -589,6 +608,21 @@ final class QueryDslCoreRegressionArticle extends Model
 final class QueryDslCoreRegressionComment extends Model
 {
     protected $table = 'dsl_core_regression_comments';
+    public $timestamps = false;
+    protected $guarded = [];
+
+    /**
+     * @return BelongsTo<QueryDslCoreRegressionCommentAuthor, $this>
+     */
+    public function author(): BelongsTo
+    {
+        return $this->belongsTo(QueryDslCoreRegressionCommentAuthor::class, 'author_id');
+    }
+}
+
+final class QueryDslCoreRegressionCommentAuthor extends Model
+{
+    protected $table = 'dsl_core_regression_comment_authors';
     public $timestamps = false;
     protected $guarded = [];
 }

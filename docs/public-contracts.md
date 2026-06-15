@@ -78,7 +78,7 @@ Stable responsibilities:
 - default sort and derived default sort;
 - strict / loose mode.
 
-Entity aliases, relation names, and ordinary fields go through identifier validation. Ordinary field strings do not accept raw SQL, function calls, JSON paths, quoted identifiers, or multi-level paths disguised as fields.
+Entity aliases, relation path segments, and ordinary fields go through identifier validation. Ordinary field strings do not accept raw SQL, function calls, JSON paths, quoted identifiers, or multi-level paths disguised as fields. Relation mappings may use Eloquent dot paths such as `comments.author`, but every segment is still validated as a safe identifier.
 
 ### 2.4 Input extension contracts
 

@@ -22,6 +22,7 @@ final class TestDatabase
 
         $schema = $capsule->schema();
         $schema->dropIfExists('dsl_core_regression_comments');
+        $schema->dropIfExists('dsl_core_regression_comment_authors');
         $schema->dropIfExists('dsl_core_regression_articles');
 
         $schema->create('dsl_core_regression_articles', function (Blueprint $table): void {
@@ -36,8 +37,14 @@ final class TestDatabase
         $schema->create('dsl_core_regression_comments', function (Blueprint $table): void {
             $table->increments('id');
             $table->unsignedInteger('article_id');
+            $table->unsignedInteger('author_id')->nullable();
             $table->string('body')->nullable();
             $table->timestamp('created_at')->nullable();
+        });
+
+        $schema->create('dsl_core_regression_comment_authors', function (Blueprint $table): void {
+            $table->increments('id');
+            $table->string('name')->nullable();
         });
 
         Capsule::table('dsl_core_regression_articles')->insert([
@@ -47,8 +54,13 @@ final class TestDatabase
         ]);
 
         Capsule::table('dsl_core_regression_comments')->insert([
-            ['id' => 1, 'article_id' => 1, 'body' => 'first comment', 'created_at' => '2026-05-01 11:00:00'],
-            ['id' => 2, 'article_id' => 2, 'body' => 'second note', 'created_at' => '2026-05-01 12:00:00'],
+            ['id' => 1, 'article_id' => 1, 'author_id' => 1, 'body' => 'first comment', 'created_at' => '2026-05-01 11:00:00'],
+            ['id' => 2, 'article_id' => 2, 'author_id' => 2, 'body' => 'second note', 'created_at' => '2026-05-01 12:00:00'],
+        ]);
+
+        Capsule::table('dsl_core_regression_comment_authors')->insert([
+            ['id' => 1, 'name' => 'Alice'],
+            ['id' => 2, 'name' => 'Bob'],
         ]);
     }
 }

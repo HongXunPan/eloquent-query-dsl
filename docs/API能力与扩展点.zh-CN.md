@@ -159,7 +159,7 @@ $definition = DslQueryDefinition::make('article')
 
 | 方法 | 含义 |
 | --- | --- |
-| `relation(string $entity, string $relation)` | 把 DSL relation alias 映射到 Eloquent relation 方法 |
+| `relation(string $entity, string $relation)` | 把 DSL relation alias 映射到 Eloquent relation path，支持 `whereHas` 原生点号路径 |
 | `hasRelation(string $entity)` / `relationFor(string $entity)` | relation introspection helper |
 
 relation search / filter 必须先声明 relation 映射。relation sort 目前明确不支持，因为隐式 join、group、select 与重复行处理都属于应用场景差异。

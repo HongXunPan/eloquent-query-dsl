@@ -25,7 +25,7 @@ README stays as the entry page. Capability status and semantics should be mainta
 | Status | Capability | Area | Input shape | Mutates Builder | Notes |
 | --- | --- | --- | --- | --- | --- |
 | ✅ | `DslQueryDefinition::make()` | definition | main entity name | No | Main entity uses safe identifier validation |
-| ✅ | `relation(entity, relation)` | definition | relation mapping | No | Used by relation search / filter through relation scopes |
+| ✅ | `relation(entity, relation)` | definition | relation path mapping | No | Used by relation search / filter through relation scopes; dot paths follow Eloquent `whereHas` semantics |
 | ✅ | `allowSearch()` | search | `search[field => value]` | Yes | Field search; multiple fields are AND; empty strings ignored |
 | ✅ | `searchRightLike()` | search | field list | Yes | Uses right-like semantics for selected search fields |
 | ✅ | `allowKeywordSearch()` | search | one input field + target fields | Yes | OR group across main-entity target fields |
