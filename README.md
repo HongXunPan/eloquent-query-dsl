@@ -19,16 +19,14 @@ Already in place:
 - `search / filter / between / sort` readers and builder appliers;
 - neutral filter normalizer contract and filter-value facts;
 - safe identifier validation for fields, entity aliases, and each segment in relation paths;
-- pagination facts and pagination policy limits;
+- page and structured bidirectional cursor pagination facts, plus pagination policy limits;
 - PHPUnit, legacy smoke tests, PHPStan level 8, PHP-CS-Fixer, Composer audit, and GitHub Actions matrix;
-- release checklist and `0.1.0` pre-release changelog section.
+- release checklist and versioned changelog.
 
-Still required before public release:
+For application adoption:
 
-- final commit and remote CI observation;
-- `0.1.0` tag and GitHub Release;
-- Packagist synchronization;
-- application-side integration against a pinned tag and application smoke tests.
+- pin an explicit released tag instead of floating `dev-main`;
+- run application-side integration and smoke tests against that pinned version.
 
 ## Documentation
 

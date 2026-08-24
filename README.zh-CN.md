@@ -21,14 +21,12 @@
 - 字段、实体别名与 relation path 每一段的安全 identifier 校验；
 - 页码分页事实、结构化双向游标与分页策略上限；
 - PHPUnit、legacy smoke、PHPStan level 8、PHP-CS-Fixer、Composer audit 与 GitHub Actions 矩阵；
-- 发布检查清单与 `0.1.0` 待发布记录。
+- 发布检查清单与按版本维护的更新日志。
 
-公开发布前仍需完成：
+应用接入时：
 
-- 最终提交与远端 CI 观察；
-- `0.1.0` tag 与 GitHub Release；
-- Packagist 同步；
-- 应用侧基于明确 tag 接入并执行项目 smoke。
+- 应锁定明确的已发布 tag，不直接依赖浮动的 `dev-main`；
+- 应针对锁定版本完成应用侧接入和 smoke。
 
 ## 文档入口
 
