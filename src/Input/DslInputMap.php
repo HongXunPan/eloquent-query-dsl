@@ -2,6 +2,7 @@
 
 namespace HongXunPan\EloquentQueryDsl\Input;
 
+use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslDefinitionException;
 use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 
 /**
@@ -22,6 +23,7 @@ class DslInputMap
     protected string $betweenKey = 'between';
     protected string $sortKey = 'sort';
     protected string $pageKey = 'page';
+    protected string $cursorKey = 'cursor';
     protected string $limitKey = 'limit';
     protected string $exportLimitKey = 'export_limit';
     protected ?string $filterPrefixValue = null;
@@ -70,6 +72,13 @@ class DslInputMap
     public function page(string $key): self
     {
         $this->pageKey = self::normalizeKey($key);
+
+        return $this;
+    }
+
+    public function cursor(string $key): self
+    {
+        $this->cursorKey = self::normalizeKey($key);
 
         return $this;
     }
@@ -156,6 +165,11 @@ class DslInputMap
         return $this->pageKey;
     }
 
+    public function cursorKey(): string
+    {
+        return $this->cursorKey;
+    }
+
     public function limitKey(): string
     {
         return $this->limitKey;
@@ -164,6 +178,25 @@ class DslInputMap
     public function exportLimitKey(): string
     {
         return $this->exportLimitKey;
+    }
+
+    /** @return list<string> */
+    public function pageKeys(): array
+    {
+        return [
+            $this->pageKey,
+            $this->limitKey,
+            $this->exportLimitKey,
+        ];
+    }
+
+    public function assertPaginationKeysValid(): void
+    {
+        if (in_array($this->cursorKey, $this->pageKeys(), true)) {
+            throw DslQueryDslDefinitionException::fromMessage(
+                'cursor参数名不能与page、limit或export_limit重复',
+            );
+        }
     }
 
     public function filterPrefixValue(): ?string

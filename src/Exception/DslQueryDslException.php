@@ -32,6 +32,26 @@ class DslQueryDslException extends InvalidArgumentException
         return new self('page格式错误');
     }
 
+    public static function invalidCursorFormat(): self
+    {
+        return new self('cursor格式错误');
+    }
+
+    public static function invalidCursor(string $message): self
+    {
+        return new self('cursor.' . $message);
+    }
+
+    public static function mixedPaginationModes(): self
+    {
+        return new self('page与cursor不能同时使用');
+    }
+
+    public static function unexpectedPaginationMode(string $expected, string $actual): self
+    {
+        return new self('当前查询使用' . $expected . '分页，不支持' . $actual);
+    }
+
     public static function invalidSectionFormat(string $sectionName): self
     {
         return new self('query.' . $sectionName . '格式错误');

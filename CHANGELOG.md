@@ -8,6 +8,13 @@
 
 ## [Unreleased]
 
+### Added
+
+- 增加与 `page` 平级且互斥的结构化 `cursor` 输入，支持 `limit / position / direction`。
+- 增加 `DslCursorRequest`，负责校验结构化位置、构造 Illuminate Cursor，并把 next / previous Cursor 还原为无需 Base64 的结构化参数。
+- `DslInputMap` 增加 cursor 顶层参数名映射；既有页码分页 API 保持不变。
+- `QueryDsl::apply()` 基于原始输入键统一判定 page / cursor 模式；解析器默认值不视为用户明确选择分页模式。
+
 ### Changed
 
 - `relation(entity, relation)` 的第二个参数从单个 relation 方法名扩展为 Eloquent relation path，支持 `comments.author` 这类点号路径；路径每一段仍走安全 identifier 校验。

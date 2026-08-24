@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace HongXunPan\EloquentQueryDsl\Tests\Unit;
 
+use HongXunPan\EloquentQueryDsl\Cursor\DslCursorRequest;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
 use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
@@ -26,6 +27,7 @@ final class PublicApiCompatibilityTest extends TestCase
         $this->assertTrue(interface_exists(DslInputParser::class));
         $this->assertTrue(interface_exists(DslFilterNormalizer::class));
         $this->assertTrue(class_exists(DslPaginationPolicy::class));
+        $this->assertTrue(class_exists(DslCursorRequest::class));
     }
 
     public function testLegacyKernelNameRemainsInternalCompatible(): void

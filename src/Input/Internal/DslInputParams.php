@@ -31,6 +31,17 @@ class DslInputParams
         return array_key_exists($key, $this->params);
     }
 
+    public function hasAny(string ...$keys): bool
+    {
+        foreach ($keys as $key) {
+            if ($this->has($key)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public function get(string $key): mixed
     {
         return $this->params[$key] ?? null;

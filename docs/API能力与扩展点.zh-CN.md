@@ -49,6 +49,7 @@
 | --- | --- |
 | `DslPaginationPolicy` | 控制默认 page / limit、最大 limit、export limit、数字字符串与 float 处理 |
 | `DslPaginationRequest` | 中性分页事实：`page`、`limit`、可选 `exportLimit` |
+| `DslCursorRequest` | 结构化游标事实：`limit`、`position`、`direction` 与 Illuminate Cursor |
 
 ### 1.6 Derived behavior API
 
@@ -96,6 +97,7 @@ $builder = $result->builder();
 $context = $result->context();
 $filters = $result->filterValues();
 $page = $result->pagination();
+$cursor = $result->cursor();
 ```
 
 | 方法 | 含义 |
@@ -104,6 +106,7 @@ $page = $result->pagination();
 | `context()` | runtime 使用的完整中性请求上下文 |
 | `filterValues()` | 应用侧后续逻辑可读取的 filter facts |
 | `pagination()` | 已归一化的分页事实；分页仍由应用代码执行 |
+| `cursor()` | 校验结构化 cursor，并生成可交给 Eloquent 分页器的游标事实 |
 
 结果对象不包含 `count`、`items`、HTTP status、响应 envelope 或业务错误格式。
 
@@ -211,6 +214,8 @@ $inputMap = DslInputMap::make()
     ->limit('per_page');
 ```
 
+`DslInputMap` 只描述最终参数名映射。`QueryDsl::apply()` 会在映射完成后校验 cursor 参数名不能与 page / limit / export_limit 重复，并根据原始输入键统一判定分页模式；setter 不校验链式配置过程中的临时状态。
+
 只有当 key 映射不足以承接现有公开协议时，才需要实现 `DslInputParser`，把外部协议转换为 `DslQueryInput` 与 `DslPageInput`。
 
 ---
@@ -243,7 +248,9 @@ normalizer 应返回中性事实，不应返回 HTTP response、应用异常对�
 
 ---
 
-## 7. Pagination policy 扩展
+## 7. 分页事实扩展
+
+### 7.1 页码分页
 
 ```php
 $policy = DslPaginationPolicy::default()
@@ -263,7 +270,51 @@ $items = $result->builder()
     ->get();
 ```
 
-应用代码自行决定使用 `paginate()`、`simplePaginate()`、cursor pagination、导出限制或自定义 response wrapper。
+应用代码自行决定使用 `paginate()`、`simplePaginate()`、导出限制或自定义 response wrapper。
+
+### 7.2 结构化游标分页
+
+`cursor` 与 `page` 平级且互斥。首次查询只需提供 `limit`，后续查询携带稳定排序位置与可选方向：
+
+```php
+$result = QueryDsl::for(Article::query(), $definition)
+    ->from([
+        'query' => ['filter' => ['status' => 'published']],
+        'cursor' => [
+            'limit' => 20,
+            'position' => [
+                'published_at' => '2026-08-24 10:00:00',
+                'id' => 123,
+            ],
+            'direction' => 'previous',
+        ],
+    ])
+    ->apply();
+
+$cursor = $result->cursor();
+$paginator = $result->builder()->cursorPaginate(
+    $cursor->limit(),
+    ['*'],
+    'cursor',
+    $cursor->cursor(),
+);
+
+$cursorFacts = [
+    'limit' => $cursor->limit(),
+    'next' => $cursor->toPayload($paginator->nextCursor()),
+    'previous' => $cursor->toPayload($paginator->previousCursor()),
+];
+```
+
+稳定规则：
+
+- `cursor` 只接受 HTTP 层已经反序列化的结构化对象，不解析 JSON 字符串；
+- `position` 必须是非空的“字段名 → 标量值”对象；
+- position 是否包含 Builder 实际排序所需的全部字段，由 Eloquent `CursorPaginator` 验证，不要求应用向 DSL 重复传字段列表；
+- Builder 仍需使用唯一且稳定的完整排序，通常以主键作为最后一个排序字段；
+- `direction` 只支持 `next / previous`，省略时默认为 `next`；
+- 返回的 `next / previous` 为 `null` 时表示对应方向没有更多数据；
+- shared core 不执行分页，也不定义 `{ cursor, list }` 响应外壳。
 
 ---
 

@@ -2,7 +2,7 @@
 
 [English README](./README.md)
 
-`hongxunpan/eloquent-query-dsl` 是一个面向 Eloquent / Builder 的列表查询 DSL core，用于把列表接口中反复出现的 `search / filter / between / sort / page` 查询协议收口为可声明、可测试、可复用的查询内核。
+`hongxunpan/eloquent-query-dsl` 是一个面向 Eloquent / Builder 的列表查询 DSL core，用于把列表接口中反复出现的 `search / filter / between / sort / page / cursor` 查询协议收口为可声明、可测试、可复用的查询内核。
 
 它不负责 HTTP request、response envelope、业务异常、分页响应结构、授权、租户规则或资源字段策略；这些能力应留在应用 adapter 或 service 层。
 
@@ -19,7 +19,7 @@
 - `search / filter / between / sort` 读取与 Builder 应用；
 - 中性的 filter normalizer 契约与 filter values facts；
 - 字段、实体别名与 relation path 每一段的安全 identifier 校验；
-- 分页事实与分页策略上限；
+- 页码分页事实、结构化双向游标与分页策略上限；
 - PHPUnit、legacy smoke、PHPStan level 8、PHP-CS-Fixer、Composer audit 与 GitHub Actions 矩阵；
 - 发布检查清单与 `0.1.0` 待发布记录。
 
@@ -68,7 +68,7 @@
 
 shared core 负责：
 
-- 外部输入解析为 `DslQueryInput / DslPageInput`；
+- 外部输入解析为查询、页码分页与结构化游标事实；
 - 查询能力声明；
 - 把 `search / filter / between / sort` 应用到 Eloquent Builder；
 - 中性 filter values 与 pagination facts；
@@ -148,6 +148,7 @@ $filterValues = $result->filterValues();
 | `DslFilterNormalizer` | 应用 validator / normalize 能力接入 filter facts 的中性桥 |
 | `DslPaginationPolicy` | 控制 page / limit / export_limit 归一化与上限 |
 | `DslPaginationRequest` | 中性分页事实；不执行分页 |
+| `DslCursorRequest` | 校验结构化 cursor、构造 Illuminate Cursor 并序列化双向游标事实 |
 
 ## 能力速查
 
@@ -166,6 +167,7 @@ $filterValues = $result->filterValues();
 | relation search/filter | 已支持 | 基于声明的 relation 映射和 relation scope |
 | relation sort | 不支持 | 明确阻断，避免隐式 join / group 语义 |
 | pagination facts | 已支持 | 只返回归一化事实；应用代码执行分页 |
+| 结构化游标 | 已支持 | `page` 与 `cursor` 互斥；支持结构化 position 与 next / previous 方向 |
 | HTTP response | Adapter | 应用侧职责 |
 | 授权 / 租户 | Adapter | 应用侧职责 |
 
@@ -188,6 +190,23 @@ $params = [
 ```
 
 这只是默认协议，不是 core 限制。若你的公开 API 已有不同参数名，请使用 `DslInputMap` 或 `DslInputParser`。
+
+游标分页使用与 `page` 平级的结构：
+
+```php
+$params = [
+    'query' => [
+        'filter' => ['status' => 'published'],
+    ],
+    'cursor' => [
+        'limit' => 20,
+        'position' => ['published_at' => '2026-08-24 10:00:00', 'id' => 123],
+        'direction' => 'previous',
+    ],
+];
+```
+
+`page` 与 `cursor` 不能同时使用；`direction` 省略时默认为 `next`。`cursor` 必须是 HTTP 层已经反序列化的结构化对象，不接受 JSON 字符串；position 与实际排序字段的匹配由 Eloquent `CursorPaginator` 按 Builder 排序验证，应用不再重复声明字段列表。分页模式只由 `apply()` 根据原始请求中是否出现 page / limit / export_limit / cursor 键决定，解析器或分页策略提供的默认值不会被误判为用户输入。
 
 ## 安装
 

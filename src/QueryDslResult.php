@@ -2,6 +2,7 @@
 
 namespace HongXunPan\EloquentQueryDsl;
 
+use HongXunPan\EloquentQueryDsl\Cursor\DslCursorRequest;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationRequest;
@@ -55,5 +56,10 @@ class QueryDslResult
     public function pagination(): DslPaginationRequest
     {
         return $this->context->paginationRequest();
+    }
+
+    public function cursor(): DslCursorRequest
+    {
+        return $this->context->cursorRequest();
     }
 }

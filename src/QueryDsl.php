@@ -3,11 +3,13 @@
 namespace HongXunPan\EloquentQueryDsl;
 
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
+use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Filter\Contract\DslFilterNormalizer;
 use HongXunPan\EloquentQueryDsl\Input\Contract\DslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DefaultDslInputParser;
 use HongXunPan\EloquentQueryDsl\Input\DslInputMap;
 use HongXunPan\EloquentQueryDsl\Input\DslQueryRequestContext;
+use HongXunPan\EloquentQueryDsl\Input\Internal\DslInputParams;
 use HongXunPan\EloquentQueryDsl\Kernel\QueryDslKernel;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
 use HongXunPan\EloquentQueryDsl\Section\DslBetweenSectionApplier;
@@ -125,12 +127,35 @@ class QueryDsl
     public function apply(): QueryDslResult
     {
         $inputMap = $this->inputMap ?? DslInputMap::make();
+        $inputMap->assertPaginationKeysValid();
+
+        $params = DslInputParams::fromArray($this->params);
+        $pageProvided = $params->hasAny(...$inputMap->pageKeys());
+        $cursorProvided = $params->has($inputMap->cursorKey());
+        if ($pageProvided && $cursorProvided) {
+            throw DslQueryDslException::mixedPaginationModes();
+        }
+
+        $cursorInput = [];
+        if ($cursorProvided) {
+            $rawCursor = $params->get($inputMap->cursorKey());
+            if (!is_array($rawCursor)) {
+                throw DslQueryDslException::invalidCursorFormat();
+            }
+
+            $cursorInput = $rawCursor;
+        }
+
         $inputParser = $this->inputParser ?? new DefaultDslInputParser();
+        $pageInput = $inputParser->pageInput($this->params, $inputMap);
         $context = DslQueryRequestContext::fromQueryInput(
             $this->definition,
             $inputParser->queryInput($this->params, $inputMap),
-            $inputParser->pageInput($this->params, $inputMap),
+            $pageInput,
             $this->paginationPolicy,
+            $pageProvided,
+            $cursorProvided,
+            $cursorInput,
         );
 
         $this->kernel()->applyContext($this->builder, $context);

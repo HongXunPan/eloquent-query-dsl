@@ -28,7 +28,8 @@
     ],
     "require": {
         "php": "^8.0.20",
-        "illuminate/database": "^9.52 || ^10.0 || ^11.0 || ^12.0"
+        "illuminate/database": "^9.52 || ^10.0 || ^11.0 || ^12.0",
+        "illuminate/pagination": "^9.52 || ^10.0 || ^11.0 || ^12.0"
     },
     "scripts": {
         "test:skeleton": "@php tests/TestRunner.php",

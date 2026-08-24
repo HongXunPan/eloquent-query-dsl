@@ -2,7 +2,9 @@
 
 namespace HongXunPan\EloquentQueryDsl\Input;
 
+use HongXunPan\EloquentQueryDsl\Cursor\DslCursorRequest;
 use HongXunPan\EloquentQueryDsl\Definition\DslQueryDefinition;
+use HongXunPan\EloquentQueryDsl\Exception\DslQueryDslException;
 use HongXunPan\EloquentQueryDsl\Filter\DslFilterValues;
 use HongXunPan\EloquentQueryDsl\Page\DslPageInput;
 use HongXunPan\EloquentQueryDsl\Page\DslPaginationPolicy;
@@ -35,9 +37,15 @@ class DslQueryRequestContext
     protected ?DslPaginationPolicy $paginationPolicy;
     protected ?DslPaginationRequest $paginationRequest = null;
     protected ?DslFilterValues $filterValues = null;
+    protected bool $pageProvided;
+    protected bool $cursorProvided;
+
+    /** @var array<array-key, mixed> */
+    protected array $cursorInput;
 
     /**
      * @param array<string, mixed> $requestParams
+     * @param array<array-key, mixed> $cursorInput
      */
     private function __construct(
         DslQueryDefinition $definition,
@@ -45,12 +53,18 @@ class DslQueryRequestContext
         ?DslQueryInput $queryInput = null,
         ?DslPageInput $pageInput = null,
         ?DslPaginationPolicy $paginationPolicy = null,
+        bool $pageProvided = false,
+        bool $cursorProvided = false,
+        array $cursorInput = [],
     ) {
         $this->definition = $definition;
         $this->requestParams = $requestParams;
         $this->queryInput = $queryInput;
         $this->pageInput = $pageInput;
         $this->paginationPolicy = $paginationPolicy;
+        $this->pageProvided = $pageProvided;
+        $this->cursorProvided = $cursorProvided;
+        $this->cursorInput = $cursorInput;
     }
 
     /**
@@ -64,13 +78,26 @@ class DslQueryRequestContext
         return new self($definition, $requestParams, paginationPolicy: $paginationPolicy);
     }
 
+    /** @param array<array-key, mixed> $cursorInput */
     public static function fromQueryInput(
         DslQueryDefinition $definition,
         DslQueryInput $queryInput,
         ?DslPageInput $pageInput = null,
         ?DslPaginationPolicy $paginationPolicy = null,
+        bool $pageProvided = false,
+        bool $cursorProvided = false,
+        array $cursorInput = [],
     ): self {
-        return new self($definition, [], $queryInput, $pageInput, $paginationPolicy);
+        return new self(
+            $definition,
+            [],
+            $queryInput,
+            $pageInput,
+            $paginationPolicy,
+            $pageProvided,
+            $cursorProvided,
+            $cursorInput,
+        );
     }
 
     public function definition(): DslQueryDefinition
@@ -98,6 +125,10 @@ class DslQueryRequestContext
 
     public function paginationRequest(): DslPaginationRequest
     {
+        if ($this->cursorProvided) {
+            throw DslQueryDslException::unexpectedPaginationMode('page', 'cursor');
+        }
+
         if ($this->paginationRequest === null) {
             $this->paginationRequest = DslPaginationRequest::fromPageInput(
                 $this->pageInput(),
@@ -106,6 +137,15 @@ class DslQueryRequestContext
         }
 
         return $this->paginationRequest;
+    }
+
+    public function cursorRequest(): DslCursorRequest
+    {
+        if ($this->pageProvided) {
+            throw DslQueryDslException::unexpectedPaginationMode('cursor', 'page');
+        }
+
+        return DslCursorRequest::fromArray($this->cursorInput, $this->paginationPolicy);
     }
 
     public function rememberFilterValues(DslFilterValues $filterValues): DslFilterValues
