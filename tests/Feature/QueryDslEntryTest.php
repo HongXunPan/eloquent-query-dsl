@@ -283,7 +283,10 @@ final class QueryDslEntryTest extends TestCase
         return array_map('intval', $query->pluck('id')->all());
     }
 
-    /** @return int[] */
+    /**
+     * @param CursorPaginator<int, Model> $paginator
+     * @return int[]
+     */
     private function paginatorIds(CursorPaginator $paginator): array
     {
         return array_map(static function (mixed $item): int {
